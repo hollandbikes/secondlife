@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HB - Reconditionnement Vélo</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-100 font-sans min-h-screen antialiased text-gray-800">
+
+    <div class="max-w-3xl mx-auto p-4 md:p-6">
+        <div class="bg-blue-700 text-white p-6 rounded-t-xl shadow-lg text-center mb-4">
+            <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Rapport d'Inspection & Reconditionnement</h1>
+            <p class="text-sm opacity-90 mt-1">Atelier National HB — Saisie Mobile & PC</p>
+        </div>
+
+        <form id="rapportForm" class="space-y-6 bg-white p-6 rounded-b-xl shadow-md">
+            
+            <div class="bg-blue-50/50 p-4 rounded-lg border border-blue-100">
+                <h2 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+                    <span>📋</span> Informations Générales
+                </h2>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700">Date du rapport</label>
+                        <input type="date" id="date_rapport" required class="mt-1 w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700">Technicien en charge</label>
+                        <select id="technicien" required class="mt-1 w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="">Choisir un mécanicien...</option>
+                            <option value="Cédric">Cédric</option>
+                            <option value="Owen">Owen</option>
+                            <option value="Kevin">Kevin</option>
+                            <option value="Guy">Guy</option>
+                            <option value="Jessy">Jessy</option>
+                        </select>
+                    </div>
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700">N°Objet CS / Marque / Modèle</label>
+                        <input type="text" id="objet_nom" placeholder="Ex: 61270 CARBO pliant" required class="mt-1 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700">Numéro de cadre</label>
+                        <input type="text" id="num_cadre" placeholder="Ex: CB23CF06277" class="mt-1 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700">Numéro de marquage</label>
+                        <input type="text" id="num_marquage" placeholder="Ex: Velopass..." class="mt-1 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700">Kilométrage</label>
+                        <input type="text" id="kilometrage" placeholder="Ex: 170 km (ou N/A)" class="mt-1 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700">Statut Global du Vélo</label>
+                        <select id="statut_global" required class="mt-1 w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none font-medium text-amber-700">
+                            <option value="Vélo non-prêt">Vélo non-prêt 🛑</option>
+                            <option value="Vélo prêt pour la vente">Vélo prêt pour la vente ✅</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 border rounded-lg bg-gray-50/50">
+                <h3 class="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3">Fiche technique & Moteur</h3>
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs">
+                    <div>
+                        <label class="font-medium text-gray-600">Moteur (Marque)</label>
+                        <input type="text" id="moteur_marque" placeholder="Bafang, Bosch..." class="mt-1 w-full p-1.5 border rounded">
+                    </div>
+                    <div>
+                        <label class="font-medium text-gray-600">Moteur (Modèle)</label>
+                        <input type="text" id="moteur_modele" class="mt-1 w-full p-1.5 border rounded">
+                    </div>
+                    <div>
+                        <label class="font-medium text-gray-600">Position Moteur</label>
+                        <input type="text" id="moteur_pos" placeholder="Pédalier, Arrière..." class="mt-1 w-full p-1.5 border rounded">
+                    </div>
+                    <div>
+                        <label class="font-medium text-gray-600">Batterie (Wh)</label>
+                        <input type="text" id="bat_wh" placeholder="400Wh, 500Wh..." class="mt-1 w-full p-1.5 border rounded">
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                
+                <div class="border rounded-xl overflow-hidden shadow-sm">
+                    <div class="bg-gray-800 text-white px-4 py-3 font-bold text-lg">1. Mécanique</div>
+                    <div class="divide-y divide-gray-200 bg-white" id="cat-mecanique"></div>
+                </div>
+
+                <div class="border rounded-xl overflow-hidden shadow-sm">
+                    <div class="bg-amber-600 text-white px-4 py-3 font-bold text-lg">2. Électrique</div>
+                    <div class="divide-y divide-gray-200 bg-white" id="cat-electrique"></div>
+                </div>
+
+                <div class="border rounded-xl overflow-hidden shadow-sm">
+                    <div class="bg-emerald-700 text-white px-4 py-3 font-bold text-lg">3. Vérifications Finales</div>
+                    <div class="divide-y divide-gray-200 bg-white" id="cat-final"></div>
+                </div>
+
+            </div>
+
+            <div class="bg-gray-50 p-4 rounded-lg border">
+                <label class="block text-sm font-bold text-gray-700 mb-2">Remarques complémentaires / Notes d'atelier</label>
+                <textarea id="remarques_atelier" rows="3" placeholder="Ajouter des précisions sur les réparations faites ou pièces à commander..." class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white outline-none text-sm"></textarea>
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" id="btnSubmit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg p-4 rounded-xl shadow-lg transition duration-150 transform active:scale-95 flex justify-center items-center gap-2 cursor-pointer">
+                    🚀 Enregistrer et Archiver le Rapport
+                </button>
+            </div>
+
+        </form>
+    </div>
+
+    <script>
+        // METS ICI TON URL RECUPEREE LORS DU DEPLOIEMENT GOOGLE APPS SCRIPT
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBK1NocIawdZAEOJPMQn_wEMNVTrFGM_x8wx_BAo47g8sTc9iQMwhiDG3miygynyNkjw/exec";
+
+        // Définition de la structure exacte de ton "Modele Vierge" (les 53 points de contrôle)
+        const pointsDeControle = [
+            // MECANIQUE
+            { id: 1, cat: "mecanique", text: "Le cadre ne présente pas de déformation, fissure ou corrosion", type: "standard" },
+            { id: 2, cat: "mecanique", text: "Les poignées sont correctement fixées", type: "standard" },
+            { id: 3, cat: "mecanique", text: "Le cintre est correctement serré", type: "standard" },
+            { id: 4, cat: "mecanique", text: "La potence est correctement serrée", type: "standard" },
+            { id: 5, cat: "mecanique", text: "La direction ne présente pas de jeu", type: "standard" },
+            { id: 6, cat: "mecanique", text: "La fourche est fonctionnelle", type: "standard" },
+            { id: 7, cat: "mecanique", text: "Les leviers de frein fonctionnent et peuvent être actionnés à un doigt", type: "standard" },
+            { id: 8, cat: "mecanique", text: "Les disques, plaquettes / patins et étriers sont fonctionnels, silencieux et sans oxydation", type: "standard" },
+            { id: 9, cat: "mecanique", text: "Les câbles et gaines de frein sont en très bon état", type: "standard" },
+            { id: 10, cat: "mecanique", text: "Les freins hydrauliques sont étanches", type: "oui_non_na" },
+            { id: 11, cat: "mecanique", text: "Contrôle des pneus / pression", type: "standard" },
+            { id: 12, cat: "mecanique", text: "Contrôle des moyeux", type: "standard" },
+            { id: 13, cat: "mecanique", text: "Contrôle des rayons", type: "standard" },
+            { id: 14, cat: "mecanique", text: "Les jantes ne présentent pas de chocs, de dommages ou voile maximal de 2mm", type: "standard" },
+            { id: 15, cat: "mecanique", text: "La chaîne ou courroie est fonctionnelle, alignée et graissée", type: "standard" },
+            { id: 16, cat: "mecanique", text: "Le pédalier est serré, graissé et ne présente pas de jeu", type: "standard" },
+            { id: 17, cat: "mecanique", text: "La cassette / roue libre / pignon est serré, graissé et sans jeu", type: "standard" },
+            { id: 18, cat: "mecanique", text: "Les vitesses passent correctement dans les deux sens, sans saut, câbles lubrifiés", type: "standard" },
+            { id: 19, cat: "mecanique", text: "Les pédales sont retirées et fixées au guidon ou dans la sacoche", type: "standard" },
+            { id: 20, cat: "mecanique", text: "La selle est fonctionnelle et ne présente pas de jeu", type: "standard" },
+            { id: 21, cat: "mecanique", text: "La tige de selle et la fixation sont fonctionnelles et sans jeu", type: "standard" },
+            { id: 22, cat: "mecanique", text: "Les suspensions sont fonctionnelles (testées en mode ouvert et fermé)", type: "standard" },
+            { id: 23, cat: "mecanique", text: "Les tubes plongeurs ne présentent pas d'oxydation et pas de fuite sur les joints", type: "standard" },
+
+            // ELECTRIQUE
+            { id: 24, cat: "electrique", text: "La batterie fonctionne", type: "standard" },
+            { id: 25, cat: "electrique", text: "Le rapport de test de la batterie est fourni", type: "select", options: ["NEUF", "ETAT NEUF", "BON ETAT", "N/A"] },
+            { id: 26, cat: "electrique", text: "Le chargeur est présent, fonctionnel et compatible avec la batterie", type: "standard" },
+            { id: 27, cat: "electrique", text: "La clé de batterie est présente et la serrure fonctionne", type: "select", options: ["1 clé", "2 clés", "N/A"] },
+            { id: 28, cat: "electrique", text: "La batterie est bien fixée et ne présente aucun jeu", type: "oui_non_na" },
+            { id: 29, cat: "electrique", text: "Les connectiques de la batterie et du dock sont en bon état", type: "oui_non_na" },
+            { id: 30, cat: "electrique", text: "Le moteur est fonctionnel et fournit une assistance électrique", type: "standard" },
+            { id: 31, cat: "electrique", text: "Les vis de fixation du moteur sont bien serrées", type: "oui_non_na" },
+            { id: 32, cat: "electrique", text: "Les connecteurs électriques sont conformes et étanches", type: "oui_non_na" },
+            { id: 33, cat: "electrique", text: "Le capteur de pédalage et/ou couple fonctionnent", type: "oui_non_na" },
+            { id: 34, cat: "electrique", text: "Le capteur de vitesse et l'aimant de rayon sont alignés et fonctionnent", type: "oui_non_na" },
+            { id: 35, cat: "electrique", text: "Les lumières sont présentes à l'avant et à l'arrière et fonctionnent", type: "standard" },
+            { id: 36, cat: "electrique", text: "La console s'allume et affiche les indications du moteur/batterie", type: "standard" },
+            { id: 37, cat: "electrique", text: "Le logiciel du vélo est à jour", type: "oui_non_na" },
+
+            // FINALES
+            { id: 38, cat: "final", text: "Les garde-boue sont bien fixés et positionnés", type: "standard" },
+            { id: 39, cat: "final", text: "Le protège-chaîne est bien fixé et positionné", type: "standard" },
+            { id: 40, cat: "final", text: "Le porte-bagage est bien fixé et ne présente pas de dommages", type: "standard" },
+            { id: 41, cat: "final", text: "La béquille est présente, fonctionnelle et sans jeu", type: "standard" },
+            { id: 42, cat: "final", text: "L'antivol de cadre fonctionne et dispose de clé", type: "select", options: ["1 clé", "2 clés", "N/A"] },
+            { id: 43, cat: "final", text: "Le vélo est marqué à l'aide d'un code unique Velopass® au nom de HB", type: "oui_non_na" },
+            { id: 44, cat: "final", text: "La sonnette est présente et fonctionnelle", type: "standard" },
+            { id: 45, cat: "final", text: "Les catadioptres ou pneus avec bandes réfléchissantes sont présents", type: "standard" },
+            { id: 46, cat: "final", text: "L'assistance se coupe bien à 25km/h", type: "oui_non_na" },
+            { id: 47, cat: "final", text: "Le vélo a été entièrement nettoyé", type: "oui_non_na" },
+            { id: 48, cat: "final", text: "Le vélo ne présente pas d'autocollant ou de résidu de scotch/colle", type: "oui_non_na" },
+            { id: 49, cat: "final", text: "Un autre marquage antivol est présent sur le vélo au nom de HB", type: "oui_non_na" },
+            { id: 50, cat: "final", text: "Les clés sont liées solidement au vélo", type: "select", options: ["1 clé", "2 clés", "3 clés", "4 clés", "N/A"] },
+            { id: 51, cat: "final", text: "Certificat de conformité et notice d'utilisation fournis", type: "select", options: ["OUI", "NON", "N/A"] },
+            { id: 52, cat: "final", text: "Dossier objet CS à jour", type: "select", options: ["OUI", "NON"] },
+            { id: 53, cat: "final", text: "Le mécanicien a effectué un trajet de test complet en conditions réelles", type: "select", options: ["OUI", "NON"] }
+        ];
+
+        // Génération automatique du HTML pour l'interface
+        pointsDeControle.forEach(pt => {
+            const container = document.getElementById(`cat-${pt.cat}`);
+            const row = document.createElement("div");
+            row.className = "p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-gray-50 transition";
+            
+            let inputHtml = "";
+
+            if (pt.type === "standard") {
+                inputHtml = `
+                    <div class="flex gap-2">
+                        <label class="flex-1 text-center"><input type="radio" name="pt_${pt.id}" value="NEUF" class="hidden peer"><span class="block text-xs font-bold border rounded-lg py-2 px-3 bg-white text-gray-700 peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600 cursor-pointer shadow-sm">NEUF</span></label>
+                        <label class="flex-1 text-center"><input type="radio" name="pt_${pt.id}" value="BON" checked class="hidden peer"><span class="block text-xs font-bold border rounded-lg py-2 px-3 bg-white text-gray-700 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 cursor-pointer shadow-sm">BON</span></label>
+                        <label class="flex-1 text-center"><input type="radio" name="pt_${pt.id}" value="MOYEN" class="hidden peer"><span class="block text-xs font-bold border rounded-lg py-2 px-3 bg-white text-gray-700 peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500 cursor-pointer shadow-sm">MOYEN</span></label>
+                        <label class="flex-1 text-center"><input type="radio" name="pt_${pt.id}" value="N/A" class="hidden peer"><span class="block text-xs font-bold border rounded-lg py-2 px-3 bg-white text-gray-400 peer-checked:bg-gray-400 peer-checked:text-white peer-checked:border-gray-400 cursor-pointer shadow-sm">N/A</span></label>
+                    </div>`;
+            } else if (pt.type === "oui_non_na") {
+                inputHtml = `
+                    <div class="flex gap-2">
+                        <label class="w-16 text-center"><input type="radio" name="pt_${pt.id}" value="OUI" checked class="hidden peer"><span class="block text-xs font-bold border rounded-lg py-2 bg-white text-gray-700 peer-checked:bg-emerald-600 peer-checked:text-white peer-checked:border-emerald-600 cursor-pointer shadow-sm">OUI</span></label>
+                        <label class="w-16 text-center"><input type="radio" name="pt_${pt.id}" value="NON" class="hidden peer"><span class="block text-xs font-bold border rounded-lg py-2 bg-white text-gray-700 peer-checked:bg-rose-600 peer-checked:text-white peer-checked:border-rose-600 cursor-pointer shadow-sm">NON</span></label>
+                        <label class="w-16 text-center"><input type="radio" name="pt_${pt.id}" value="N/A" class="hidden peer"><span class="block text-xs font-bold border rounded-lg py-2 bg-white text-gray-400 peer-checked:bg-gray-400 peer-checked:text-white peer-checked:border-gray-400 cursor-pointer shadow-sm">N/A</span></label>
+                    </div>`;
+            } else if (pt.type === "select") {
+                inputHtml = `
+                    <select name="pt_${pt.id}" class="p-2 border rounded-lg text-xs font-bold bg-white focus:ring-2 focus:ring-blue-500 max-w-xs w-full">
+                        ${pt.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                    </select>`;
+            }
+
+            row.innerHTML = `
+                <div class="max-w-xl">
+                    <span class="text-xs font-bold text-gray-400 mr-1">${pt.id}.</span>
+                    <span class="text-sm font-medium text-gray-800">${pt.text}</span>
+                </div>
+                <div class="md:shrink-0">${inputHtml}</div>
+            `;
+            container.appendChild(row);
+        });
+
+        // Date du jour par défaut
+        document.getElementById('date_rapport').valueAsDate = new Date();
+
+        // Événement d'envoi du formulaire
+        document.getElementById('rapportForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const btnSubmit = document.getElementById('btnSubmit');
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = "🔄 Transmission en cours...";
+
+            // 1. Collecte des métadonnées générales
+            const payload = {
+                "Date": document.getElementById('date_rapport').value,
+                "Technicien": document.getElementById('technicien').value,
+                "Objet/Marque/Modèle": document.getElementById('objet_nom').value,
+                "N° de cadre": document.getElementById('num_cadre').value,
+                "Numéro de marquage": document.getElementById('num_marquage').value,
+                "Kilométrage": document.getElementById('kilometrage').value,
+                "Statut Global": document.getElementById('statut_global').value,
+                "Moteur Marque": document.getElementById('moteur_marque').value,
+                "Moteur Modèle": document.getElementById('moteur_modele').value,
+                "Position Moteur": document.getElementById('moteur_pos').value,
+                "Batterie Wh": document.getElementById('bat_wh').value,
+                "Remarques Atelier": document.getElementById('remarques_atelier').value
+            };
+
+            // 2. Récupération dynamique des 53 points de contrôle
+            pointsDeControle.forEach(pt => {
+                const keyName = `Point ${pt.id}`;
+                if (pt.type === "select") {
+                    payload[keyName] = document.querySelector(`[name="pt_${pt.id}"]`).value;
+                } else {
+                    const checkedOption = document.querySelector(`[name="pt_${pt.id}"]:checked`);
+                    payload[keyName] = checkedOption ? checkedOption.value : "";
+                }
+            });
+
+            // 3. Envoi AJAX à Google Apps Script
+            fetch(SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                alert("✨ Succès ! Le rapport a été ajouté à la base centrale Google Sheets.");
+                document.getElementById('rapportForm').reset();
+                document.getElementById('date_rapport').valueAsDate = new Date();
+            })
+            .catch(err => {
+                alert("❌ Erreur de réseau ou de script : " + err);
+            })
+            .finally(() => {
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = "🚀 Enregistrer et Archiver le Rapport";
+            });
+        });
+    </script>
+</body>
+</html>
