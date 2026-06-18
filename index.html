@@ -5,17 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HB - Reconditionnement Vélo</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        .select-oui { background-color: #16a34a !important; color: white !important; border-color: #16a34a !important; }
+        .select-non { background-color: #dc2626 !important; color: white !important; border-color: #dc2626 !important; }
+        .statut-global-pret { background-color: #16a34a; color: white; border-radius: 0.5rem; padding: 0.75rem 1rem; font-weight: 700; font-size: 1rem; text-align: center; }
+        .statut-global-non-pret { background-color: #dc2626; color: white; border-radius: 0.5rem; padding: 0.75rem 1rem; font-weight: 700; font-size: 1rem; text-align: center; }
+        .probleme-link { display: block; color: #dc2626; font-size: 0.8rem; font-weight: 600; text-decoration: underline; margin-top: 0.25rem; cursor: pointer; }
+        .probleme-link:hover { color: #991b1b; }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans min-h-screen antialiased text-gray-800">
 
     <div class="max-w-3xl mx-auto p-4 md:p-6">
+
+        <!-- Bouton archivage -->
+        <div class="mb-3 flex justify-end">
+            <a href="https://docs.google.com/spreadsheets/d/1Xv6J0Kef-oD3T4WgZdDsRqkeD4b2B-dD4S4cIMTcglM/edit" target="_blank"
+               class="inline-flex items-center gap-2 bg-white border border-gray-300 text-gray-700 font-semibold text-sm px-4 py-2 rounded-lg shadow hover:bg-gray-50 transition">
+                📊 Accéder à l'archivage des reconditionnements
+            </a>
+        </div>
+
+        <!-- Header -->
         <div class="bg-blue-700 text-white p-6 rounded-t-xl shadow-lg text-center mb-4">
-            <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Rapport d'Inspection & Reconditionnement</h1>
-            <p class="text-sm opacity-90 mt-1">Atelier National HB — Saisie Mobile & PC</p>
+            <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Rapport d'inspection reconditionnement complet VAE</h1>
+            <p class="text-sm opacity-90 mt-1">EBSC Holland Bikes</p>
         </div>
 
         <form id="rapportForm" class="space-y-6 bg-white p-6 rounded-b-xl shadow-md">
             
+            <!-- Informations générales -->
             <div class="bg-blue-50/50 p-4 rounded-lg border border-blue-100">
                 <h2 class="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
                     <span>📋</span> Informations Générales
@@ -27,14 +46,7 @@
                     </div>
                     <div>
                         <label class="block text-sm font-semibold text-gray-700">Technicien en charge</label>
-                        <select id="technicien" required class="mt-1 w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none">
-                            <option value="">Choisir un mécanicien...</option>
-                            <option value="Cédric">Cédric</option>
-                            <option value="Owen">Owen</option>
-                            <option value="Kevin">Kevin</option>
-                            <option value="Guy">Guy</option>
-                            <option value="Jessy">Jessy</option>
-                        </select>
+                        <input type="text" id="technicien" placeholder="Nom du mécanicien..." required class="mt-1 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
                     <div class="sm:col-span-2">
                         <label class="block text-sm font-semibold text-gray-700">N°Objet CS / Marque / Modèle</label>
@@ -45,23 +57,25 @@
                         <input type="text" id="num_cadre" placeholder="Ex: CB23CF06277" class="mt-1 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700">Numéro de marquage</label>
-                        <input type="text" id="num_marquage" placeholder="Ex: Velopass..." class="mt-1 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
-                    </div>
-                    <div>
                         <label class="block text-sm font-semibold text-gray-700">Kilométrage</label>
                         <input type="text" id="kilometrage" placeholder="Ex: 170 km (ou N/A)" class="mt-1 w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
                     </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700">Statut Global du Vélo</label>
-                        <select id="statut_global" required class="mt-1 w-full p-2.5 border rounded-lg bg-white focus:ring-2 focus:ring-blue-500 outline-none font-medium text-amber-700">
-                            <option value="Vélo non-prêt">Vélo non-prêt 🛑</option>
-                            <option value="Vélo prêt pour la vente">Vélo prêt pour la vente ✅</option>
-                        </select>
+
+                    <!-- Statut Global calculé automatiquement -->
+                    <div class="sm:col-span-2">
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">Statut Global du Vélo</label>
+                        <div id="statut_global_display" class="statut-global-non-pret">
+                            🛑 Vélo non-prêt
+                        </div>
+                        <div id="problemes_liste" class="mt-2 hidden">
+                            <p class="text-xs font-bold text-red-700 mb-1">⚠️ Points à corriger :</p>
+                            <div id="problemes_liens"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Fiche technique -->
             <div class="p-4 border rounded-lg bg-gray-50/50">
                 <h3 class="text-sm font-bold uppercase tracking-wider text-gray-500 mb-3">Fiche technique & Moteur</h3>
                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-4 text-xs">
@@ -84,25 +98,23 @@
                 </div>
             </div>
 
+            <!-- Points de contrôle -->
             <div class="space-y-6">
-                
                 <div class="border rounded-xl overflow-hidden shadow-sm">
                     <div class="bg-gray-800 text-white px-4 py-3 font-bold text-lg">1. Mécanique</div>
                     <div class="divide-y divide-gray-200 bg-white" id="cat-mecanique"></div>
                 </div>
-
                 <div class="border rounded-xl overflow-hidden shadow-sm">
                     <div class="bg-amber-600 text-white px-4 py-3 font-bold text-lg">2. Électrique</div>
                     <div class="divide-y divide-gray-200 bg-white" id="cat-electrique"></div>
                 </div>
-
                 <div class="border rounded-xl overflow-hidden shadow-sm">
                     <div class="bg-emerald-700 text-white px-4 py-3 font-bold text-lg">3. Vérifications Finales</div>
                     <div class="divide-y divide-gray-200 bg-white" id="cat-final"></div>
                 </div>
-
             </div>
 
+            <!-- Remarques -->
             <div class="bg-gray-50 p-4 rounded-lg border">
                 <label class="block text-sm font-bold text-gray-700 mb-2">Remarques complémentaires / Notes d'atelier</label>
                 <textarea id="remarques_atelier" rows="3" placeholder="Ajouter des précisions sur les réparations faites ou pièces à commander..." class="w-full p-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 bg-white outline-none text-sm"></textarea>
@@ -118,10 +130,9 @@
     </div>
 
     <script>
-        // METS ICI TON URL RECUPEREE LORS DU DEPLOIEMENT GOOGLE APPS SCRIPT
+        // URL du Google Apps Script (à remplacer après déploiement)
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBK1NocIawdZAEOJPMQn_wEMNVTrFGM_x8wx_BAo47g8sTc9iQMwhiDG3miygynyNkjw/exec";
 
-        // Définition de la structure exacte de ton "Modele Vierge" (les 53 points de contrôle)
         const pointsDeControle = [
             // MECANIQUE
             { id: 1, cat: "mecanique", text: "Le cadre ne présente pas de déformation, fissure ou corrosion", type: "standard" },
@@ -147,7 +158,6 @@
             { id: 21, cat: "mecanique", text: "La tige de selle et la fixation sont fonctionnelles et sans jeu", type: "standard" },
             { id: 22, cat: "mecanique", text: "Les suspensions sont fonctionnelles (testées en mode ouvert et fermé)", type: "standard" },
             { id: 23, cat: "mecanique", text: "Les tubes plongeurs ne présentent pas d'oxydation et pas de fuite sur les joints", type: "standard" },
-
             // ELECTRIQUE
             { id: 24, cat: "electrique", text: "La batterie fonctionne", type: "standard" },
             { id: 25, cat: "electrique", text: "Le rapport de test de la batterie est fourni", type: "select", options: ["NEUF", "ETAT NEUF", "BON ETAT", "N/A"] },
@@ -163,7 +173,6 @@
             { id: 35, cat: "electrique", text: "Les lumières sont présentes à l'avant et à l'arrière et fonctionnent", type: "standard" },
             { id: 36, cat: "electrique", text: "La console s'allume et affiche les indications du moteur/batterie", type: "standard" },
             { id: 37, cat: "electrique", text: "Le logiciel du vélo est à jour", type: "oui_non_na" },
-
             // FINALES
             { id: 38, cat: "final", text: "Les garde-boue sont bien fixés et positionnés", type: "standard" },
             { id: 39, cat: "final", text: "Le protège-chaîne est bien fixé et positionné", type: "standard" },
@@ -179,16 +188,17 @@
             { id: 49, cat: "final", text: "Un autre marquage antivol est présent sur le vélo au nom de HB", type: "oui_non_na" },
             { id: 50, cat: "final", text: "Les clés sont liées solidement au vélo", type: "select", options: ["1 clé", "2 clés", "3 clés", "4 clés", "N/A"] },
             { id: 51, cat: "final", text: "Certificat de conformité et notice d'utilisation fournis", type: "select", options: ["OUI", "NON", "N/A"] },
-            { id: 52, cat: "final", text: "Dossier objet CS à jour", type: "select", options: ["OUI", "NON"] },
-            { id: 53, cat: "final", text: "Le mécanicien a effectué un trajet de test complet en conditions réelles", type: "select", options: ["OUI", "NON"] }
+            { id: 52, cat: "final", text: "Dossier objet CS à jour", type: "select", options: ["OUI", "NON"], oui_non_color: true },
+            { id: 53, cat: "final", text: "Le mécanicien a effectué un trajet de test complet en conditions réelles", type: "select", options: ["OUI", "NON"], oui_non_color: true }
         ];
 
-        // Génération automatique du HTML pour l'interface
+        // ── Génération du HTML des points de contrôle ──────────────────────────
         pointsDeControle.forEach(pt => {
             const container = document.getElementById(`cat-${pt.cat}`);
             const row = document.createElement("div");
+            row.id = `row-pt-${pt.id}`;
             row.className = "p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-gray-50 transition";
-            
+
             let inputHtml = "";
 
             if (pt.type === "standard") {
@@ -207,8 +217,11 @@
                         <label class="w-16 text-center"><input type="radio" name="pt_${pt.id}" value="N/A" class="hidden peer"><span class="block text-xs font-bold border rounded-lg py-2 bg-white text-gray-400 peer-checked:bg-gray-400 peer-checked:text-white peer-checked:border-gray-400 cursor-pointer shadow-sm">N/A</span></label>
                     </div>`;
             } else if (pt.type === "select") {
+                const defaultVal = pt.options[0];
+                const isNon = defaultVal === "NON";
+                const colorClass = pt.oui_non_color ? (isNon ? "select-non" : "select-oui") : "";
                 inputHtml = `
-                    <select name="pt_${pt.id}" class="p-2 border rounded-lg text-xs font-bold bg-white focus:ring-2 focus:ring-blue-500 max-w-xs w-full">
+                    <select name="pt_${pt.id}" id="select-pt-${pt.id}" class="p-2 border rounded-lg text-xs font-bold bg-white focus:ring-2 focus:ring-blue-500 max-w-xs w-full ${colorClass}" ${pt.oui_non_color ? `onchange="updateSelectColor(this)"` : ""}>
                         ${pt.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
                     </select>`;
             }
@@ -223,26 +236,86 @@
             container.appendChild(row);
         });
 
+        // ── Couleur des selects OUI/NON (pts 52 & 53) ─────────────────────────
+        function updateSelectColor(sel) {
+            sel.classList.remove("select-oui", "select-non");
+            if (sel.value === "OUI") sel.classList.add("select-oui");
+            else if (sel.value === "NON") sel.classList.add("select-non");
+        }
+
+        // ── Statut Global calculé automatiquement ─────────────────────────────
+        // Les points "problématiques" = NON sur oui_non_na, ou NON sur select oui_non_color
+        function getProblemes() {
+            const problemes = [];
+            pointsDeControle.forEach(pt => {
+                if (pt.type === "oui_non_na") {
+                    const checked = document.querySelector(`[name="pt_${pt.id}"]:checked`);
+                    if (checked && checked.value === "NON") {
+                        problemes.push({ id: pt.id, text: pt.text });
+                    }
+                } else if (pt.type === "select" && pt.oui_non_color) {
+                    const sel = document.getElementById(`select-pt-${pt.id}`);
+                    if (sel && sel.value === "NON") {
+                        problemes.push({ id: pt.id, text: pt.text });
+                    }
+                }
+            });
+            return problemes;
+        }
+
+        function updateStatutGlobal() {
+            const problemes = getProblemes();
+            const display = document.getElementById("statut_global_display");
+            const listeDiv = document.getElementById("problemes_liste");
+            const liensDiv = document.getElementById("problemes_liens");
+
+            if (problemes.length === 0) {
+                display.className = "statut-global-pret";
+                display.textContent = "✅ Vélo prêt pour la vente";
+                listeDiv.classList.add("hidden");
+            } else {
+                display.className = "statut-global-non-pret";
+                display.textContent = "🛑 Vélo non-prêt";
+                listeDiv.classList.remove("hidden");
+                liensDiv.innerHTML = problemes.map(p =>
+                    `<a class="probleme-link" onclick="document.getElementById('row-pt-${p.id}').scrollIntoView({behavior:'smooth', block:'center'})">
+                        ↳ Point ${p.id} : ${p.text}
+                    </a>`
+                ).join('');
+            }
+        }
+
+        // Écouter tous les changements de radio et select
+        document.addEventListener("change", function(e) {
+            if (e.target.name && e.target.name.startsWith("pt_")) {
+                updateStatutGlobal();
+            }
+        });
+
+        // Calcul initial
+        updateStatutGlobal();
+
         // Date du jour par défaut
         document.getElementById('date_rapport').valueAsDate = new Date();
 
-        // Événement d'envoi du formulaire
+        // ── Envoi du formulaire ────────────────────────────────────────────────
         document.getElementById('rapportForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             const btnSubmit = document.getElementById('btnSubmit');
             btnSubmit.disabled = true;
             btnSubmit.innerHTML = "🔄 Transmission en cours...";
 
-            // 1. Collecte des métadonnées générales
+            const problemes = getProblemes();
+            const statutGlobal = problemes.length === 0 ? "Vélo prêt pour la vente" : "Vélo non-prêt";
+
             const payload = {
                 "Date": document.getElementById('date_rapport').value,
                 "Technicien": document.getElementById('technicien').value,
                 "Objet/Marque/Modèle": document.getElementById('objet_nom').value,
                 "N° de cadre": document.getElementById('num_cadre').value,
-                "Numéro de marquage": document.getElementById('num_marquage').value,
                 "Kilométrage": document.getElementById('kilometrage').value,
-                "Statut Global": document.getElementById('statut_global').value,
+                "Statut Global": statutGlobal,
                 "Moteur Marque": document.getElementById('moteur_marque').value,
                 "Moteur Modèle": document.getElementById('moteur_modele').value,
                 "Position Moteur": document.getElementById('moteur_pos').value,
@@ -250,7 +323,6 @@
                 "Remarques Atelier": document.getElementById('remarques_atelier').value
             };
 
-            // 2. Récupération dynamique des 53 points de contrôle
             pointsDeControle.forEach(pt => {
                 const keyName = `Point ${pt.id}`;
                 if (pt.type === "select") {
@@ -261,17 +333,17 @@
                 }
             });
 
-            // 3. Envoi AJAX à Google Apps Script
             fetch(SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors', 
+                mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             })
             .then(() => {
-                alert("✨ Succès ! Le rapport a été ajouté à la base centrale Google Sheets.");
+                alert("✨ Succès ! L'onglet a été créé dans le Google Sheets.");
                 document.getElementById('rapportForm').reset();
                 document.getElementById('date_rapport').valueAsDate = new Date();
+                updateStatutGlobal();
             })
             .catch(err => {
                 alert("❌ Erreur de réseau ou de script : " + err);
