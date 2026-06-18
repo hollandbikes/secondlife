@@ -1423,30 +1423,56 @@ async function submitForm() {
     notes:         document.getElementById('notes').value,
   };
   
+  // ── Stratégie d'envoi : POST no-cors + vérification GET ────
+  // Apps Script bloque CORS sur POST. On envoie en no-cors (pas de réponse lisible),
+  // puis on vérifie avec un GET que la fiche a bien été créée.
+  const cs = document.getElementById('objetCS').value.trim();
+  const expectedSheet = `CS-${cs}`;
+
   try {
-    // Apps Script ne supporte pas CORS sur POST depuis un domaine externe.
-    // On envoie via GET avec le payload encodé en paramètre URL.
-    const encoded = encodeURIComponent(JSON.stringify(payload));
-    const url = `${APPS_SCRIPT_URL}?action=save&payload=${encoded}`;
-    const resp = await fetch(url, { redirect: 'follow' });
-    const result = await resp.json();
-    
+    // 1. POST no-cors — Apps Script reçoit les données mais on ne peut pas lire la réponse
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload),
+    });
+
+    // 2. Attendre que Apps Script traite (1.5s) puis vérifier via GET
+    overlay.querySelector('.submit-sub').textContent = 'Vérification en cours…';
+    await new Promise(r => setTimeout(r, 2000));
+
+    let confirmed = false;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        const checkResp = await fetch(`${APPS_SCRIPT_URL}?action=get&cs=${encodeURIComponent(cs)}`);
+        const checkResult = await checkResp.json();
+        if (checkResult.success) { confirmed = true; break; }
+      } catch(_) {}
+      await new Promise(r => setTimeout(r, 1500));
+    }
+
     overlay.classList.remove('visible');
-    
-    if (result.success) {
-      // Remove from drafts
-      const cs = document.getElementById('objetCS').value.trim();
+
+    if (confirmed) {
+      // Retirer du brouillon local
       const drafts = getDrafts().filter(d => d.objetCS !== cs);
       saveDrafts(drafts);
       updateDraftCount();
-      
+
       const banner = document.getElementById('success-banner');
-      banner.innerHTML = `✓ Fiche <strong>${result.sheetName}</strong> enregistrée dans Google Sheets ! <a href="https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit" target="_blank" style="color:white;text-decoration:underline;margin-left:8px;">Voir le Sheets →</a>`;
+      banner.innerHTML = `✓ Fiche <strong>${expectedSheet}</strong> enregistrée dans Google Sheets ! <a href="https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit" target="_blank" style="color:white;text-decoration:underline;margin-left:8px;">Voir le Sheets →</a>`;
       banner.style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
       setTimeout(() => resetForm(), 6000);
     } else {
-      throw new Error(result.error || 'Erreur inconnue');
+      // POST envoyé mais impossible de confirmer — probablement OK mais réseau lent
+      overlay.classList.remove('visible');
+      const banner = document.getElementById('success-banner');
+      banner.innerHTML = `✓ Données envoyées. Vérifie dans le <a href="https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit" target="_blank" style="color:white;text-decoration:underline;">Sheets</a> que la fiche <strong>${expectedSheet}</strong> est bien apparue.`;
+      banner.style.display = 'block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      setTimeout(() => resetForm(), 8000);
     }
   } catch (err) {
     overlay.classList.remove('visible');
