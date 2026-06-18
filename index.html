@@ -131,7 +131,7 @@
 
     <script>
         // URL du Google Apps Script (à remplacer après déploiement)
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw_wrCvULMwCcu1V8KeiuwITQK3WVe7pIDz4ZvbbQlXR728YdhFhXN6KVZqTVKhSMle/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwyXLcprz-DZP__BXnDs5aIh7zytZxw5ekDF-6ysQoDOoyCB4mnZVJjyQlPbDhWCIQn/exec";
 
         const pointsDeControle = [
             // MECANIQUE
@@ -333,20 +333,24 @@
                 }
             });
 
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+            // On envoie via GET + paramètre "payload" pour contourner la limitation no-cors
+            const encodedPayload = encodeURIComponent(JSON.stringify(payload));
+            fetch(SCRIPT_URL + "?payload=" + encodedPayload, {
+                method: 'GET',
             })
-            .then(() => {
-                alert("✨ Succès ! L'onglet a été créé dans le Google Sheets.");
-                document.getElementById('rapportForm').reset();
-                document.getElementById('date_rapport').valueAsDate = new Date();
-                updateStatutGlobal();
+            .then(res => res.json())
+            .then(result => {
+                if (result.success) {
+                    alert("✨ Succès ! Onglet \"" + result.sheetName + "\" créé dans le Google Sheets.");
+                    document.getElementById('rapportForm').reset();
+                    document.getElementById('date_rapport').valueAsDate = new Date();
+                    updateStatutGlobal();
+                } else {
+                    alert("❌ Erreur dans le script : " + result.error);
+                }
             })
             .catch(err => {
-                alert("❌ Erreur de réseau ou de script : " + err);
+                alert("❌ Erreur de réseau : " + err);
             })
             .finally(() => {
                 btnSubmit.disabled = false;
