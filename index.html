@@ -1424,22 +1424,27 @@ async function submitForm() {
   };
   
   try {
-    const resp = await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' }, // Apps Script CORS workaround
-      body: JSON.stringify(payload),
-    });
+    // Apps Script ne supporte pas CORS sur POST depuis un domaine externe.
+    // On envoie via GET avec le payload encodé en paramètre URL.
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    const url = `${APPS_SCRIPT_URL}?action=save&payload=${encoded}`;
+    const resp = await fetch(url, { redirect: 'follow' });
     const result = await resp.json();
     
     overlay.classList.remove('visible');
     
     if (result.success) {
+      // Remove from drafts
+      const cs = document.getElementById('objetCS').value.trim();
+      const drafts = getDrafts().filter(d => d.objetCS !== cs);
+      saveDrafts(drafts);
+      updateDraftCount();
+      
       const banner = document.getElementById('success-banner');
-      banner.innerHTML = `✓ Fiche <strong>${result.sheetName}</strong> enregistrée avec succès dans Google Sheets !`;
+      banner.innerHTML = `✓ Fiche <strong>${result.sheetName}</strong> enregistrée dans Google Sheets ! <a href="https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit" target="_blank" style="color:white;text-decoration:underline;margin-left:8px;">Voir le Sheets →</a>`;
       banner.style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      // Reset after 3s
-      setTimeout(() => resetForm(), 5000);
+      setTimeout(() => resetForm(), 6000);
     } else {
       throw new Error(result.error || 'Erreur inconnue');
     }
