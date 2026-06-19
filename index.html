@@ -1359,15 +1359,20 @@ async function submitForm() {
     alert('Merci de sélectionner le statut global du vélo.');
     return;
   }
-  
+
   const overlay = document.getElementById('submit-overlay');
   overlay.classList.add('visible');
-  
+  overlay.querySelector('.submit-msg').textContent = 'Enregistrement en cours…';
+  overlay.querySelector('.submit-sub').textContent = 'Envoi vers Google Sheets';
+
+  const cs = document.getElementById('objetCS').value.trim();
+  const expectedSheet = 'CS-' + cs;
+
   const payload = {
     header: {
       date:       document.getElementById('date').value,
       technicien: document.getElementById('technicien').value,
-      objetCS:    document.getElementById('objetCS').value,
+      objetCS:    cs,
     },
     caracteristiques: {
       general: {
@@ -1379,11 +1384,11 @@ async function submitForm() {
         poids:       document.getElementById('poidsVelo').value,
       },
       cadre: {
-        materiau:         getSelectValue('materiau'),
-        hauteur:          document.getElementById('hauteurCadre').value,
-        couleurPrincipale:document.getElementById('couleurPrincipale').value,
-        couleurSecondaire:document.getElementById('couleurSecondaire').value,
-        poidsNetBrut:     document.getElementById('poidsNetBrut').value,
+        materiau:          getSelectValue('materiau'),
+        hauteur:           document.getElementById('hauteurCadre').value,
+        couleurPrincipale: document.getElementById('couleurPrincipale').value,
+        couleurSecondaire: document.getElementById('couleurSecondaire').value,
+        poidsNetBrut:      document.getElementById('poidsNetBrut').value,
       },
       electrique: {
         moteurMarque:        getSelectValue('moteurMarque'),
@@ -1418,69 +1423,103 @@ async function submitForm() {
         bequille:            document.getElementById('bequille').value,
       }
     },
-    inspection:    inspValues,
-    statutGlobal:  statutGlobal,
-    notes:         document.getElementById('notes').value,
+    inspection:   inspValues,
+    statutGlobal: statutGlobal,
+    notes:        document.getElementById('notes').value,
   };
-  
-  // ── Stratégie d'envoi : POST no-cors + vérification GET ────
-  // Apps Script bloque CORS sur POST. On envoie en no-cors (pas de réponse lisible),
-  // puis on vérifie avec un GET que la fiche a bien été créée.
-  const cs = document.getElementById('objetCS').value.trim();
-  const expectedSheet = `CS-${cs}`;
 
+  // ── Envoi via iframe caché (contourne CORS complètement) ──────
+  // On crée un formulaire HTML invisible qui POST vers Apps Script.
+  // Apps Script reçoit les données dans e.postData.contents.
+  // On vérifie ensuite via GET que la fiche a bien été créée.
   try {
-    // 1. POST no-cors — Apps Script reçoit les données mais on ne peut pas lire la réponse
-    await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload),
-    });
+    await sendViaIframe(payload);
 
-    // 2. Attendre que Apps Script traite (1.5s) puis vérifier via GET
-    overlay.querySelector('.submit-sub').textContent = 'Vérification en cours…';
-    await new Promise(r => setTimeout(r, 2000));
+    // Attendre que Apps Script traite
+    overlay.querySelector('.submit-sub').textContent = 'Vérification dans Google Sheets…';
+    await new Promise(r => setTimeout(r, 3000));
 
+    // Vérifier via GET (CORS ok sur GET)
     let confirmed = false;
-    for (let attempt = 0; attempt < 5; attempt++) {
+    for (let attempt = 0; attempt < 6; attempt++) {
       try {
-        const checkResp = await fetch(`${APPS_SCRIPT_URL}?action=get&cs=${encodeURIComponent(cs)}`);
+        const checkResp = await fetch(APPS_SCRIPT_URL + '?action=get&cs=' + encodeURIComponent(cs));
         const checkResult = await checkResp.json();
         if (checkResult.success) { confirmed = true; break; }
       } catch(_) {}
-      await new Promise(r => setTimeout(r, 1500));
+      await new Promise(r => setTimeout(r, 2000));
     }
 
     overlay.classList.remove('visible');
 
     if (confirmed) {
-      // Retirer du brouillon local
       const drafts = getDrafts().filter(d => d.objetCS !== cs);
       saveDrafts(drafts);
       updateDraftCount();
-
       const banner = document.getElementById('success-banner');
-      banner.innerHTML = `✓ Fiche <strong>${expectedSheet}</strong> enregistrée dans Google Sheets ! <a href="https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit" target="_blank" style="color:white;text-decoration:underline;margin-left:8px;">Voir le Sheets →</a>`;
+      banner.innerHTML = '✓ Fiche <strong>' + expectedSheet + '</strong> enregistrée dans Google Sheets ! <a href="https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit" target="_blank" style="color:white;text-decoration:underline;margin-left:8px;">Voir le Sheets →</a>';
       banner.style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
       setTimeout(() => resetForm(), 6000);
     } else {
-      // POST envoyé mais impossible de confirmer — probablement OK mais réseau lent
-      overlay.classList.remove('visible');
       const banner = document.getElementById('success-banner');
-      banner.innerHTML = `✓ Données envoyées. Vérifie dans le <a href="https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit" target="_blank" style="color:white;text-decoration:underline;">Sheets</a> que la fiche <strong>${expectedSheet}</strong> est bien apparue.`;
+      banner.innerHTML = '✓ Données envoyées — vérifie que l'onglet <strong>' + expectedSheet + '</strong> est apparu dans le <a href="https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit" target="_blank" style="color:white;text-decoration:underline;">Sheets</a>.';
       banner.style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      setTimeout(() => resetForm(), 8000);
+      setTimeout(() => resetForm(), 10000);
     }
   } catch (err) {
     overlay.classList.remove('visible');
     const banner = document.getElementById('error-banner');
-    banner.innerHTML = `✗ Erreur lors de l'enregistrement : ${err.message}. Vérifie ta connexion et réessaie.`;
+    banner.innerHTML = '✗ Erreur : ' + err.message;
     banner.style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
+}
+
+// Envoi via un formulaire/iframe caché — contourne totalement CORS
+function sendViaIframe(payload) {
+  return new Promise(function(resolve, reject) {
+    // Nettoyer les anciens éléments
+    var oldIframe = document.getElementById('_submit_iframe');
+    var oldForm   = document.getElementById('_submit_form');
+    if (oldIframe) oldIframe.remove();
+    if (oldForm)   oldForm.remove();
+
+    // Créer un iframe invisible
+    var iframe = document.createElement('iframe');
+    iframe.id   = '_submit_iframe';
+    iframe.name = '_submit_iframe';
+    iframe.style.cssText = 'display:none;width:0;height:0;border:none;';
+    document.body.appendChild(iframe);
+
+    // Créer un formulaire caché qui cible l'iframe
+    var form = document.createElement('form');
+    form.id     = '_submit_form';
+    form.method = 'POST';
+    form.action = APPS_SCRIPT_URL;
+    form.target = '_submit_iframe';
+    form.style.cssText = 'display:none;';
+
+    // Le payload JSON dans un champ caché
+    var input = document.createElement('input');
+    input.type  = 'hidden';
+    input.name  = 'payload';
+    input.value = JSON.stringify(payload);
+    form.appendChild(input);
+
+    document.body.appendChild(form);
+
+    // Résoudre après soumission (on ne peut pas lire la réponse iframe cross-origin)
+    iframe.onload = function() { resolve(); };
+    iframe.onerror = function() { reject(new Error('Échec envoi')); };
+
+    // Soumettre
+    form.submit();
+
+    // Fallback timeout si onload ne se déclenche pas
+    setTimeout(function() { resolve(); }, 4000);
+  });
 }
 
 // ── RESET ────────────────────────────────────────────────────
