@@ -1463,7 +1463,7 @@ async function submitForm() {
       setTimeout(() => resetForm(), 6000);
     } else {
       const banner = document.getElementById('success-banner');
-      banner.innerHTML = '✓ Données envoyées — vérifie que l'onglet <strong>' + expectedSheet + '</strong> est apparu dans le <a href="https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit" target="_blank" style="color:white;text-decoration:underline;">Sheets</a>.';
+      banner.innerHTML = "✓ Données envoyées — vérifie que l'onglet <strong>" + expectedSheet + "</strong> est apparu dans le <a href='https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit' target='_blank' style='color:white;text-decoration:underline;'>Sheets</a>.";
       banner.style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
       setTimeout(() => resetForm(), 10000);
