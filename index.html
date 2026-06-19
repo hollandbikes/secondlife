@@ -688,7 +688,7 @@ textarea { resize: vertical; min-height: 80px; }
 
     <div class="nav-bar">
       <div></div>
-      <button class="btn btn-primary" onclick="goToStep(1)">Suivant →</button>
+      <button class="btn btn-primary" data-goto="1">Suivant →</button>
     </div>
   </section>
 
@@ -764,8 +764,8 @@ textarea { resize: vertical; min-height: 80px; }
     </div>
 
     <div class="nav-bar">
-      <button class="btn btn-secondary" onclick="goToStep(0)">← Retour</button>
-      <button class="btn btn-primary" onclick="goToStep(2)">Suivant →</button>
+      <button class="btn btn-secondary" data-goto="0">← Retour</button>
+      <button class="btn btn-primary" data-goto="2">Suivant →</button>
     </div>
   </section>
 
@@ -870,8 +870,8 @@ textarea { resize: vertical; min-height: 80px; }
     </div>
 
     <div class="nav-bar">
-      <button class="btn btn-secondary" onclick="goToStep(1)">← Retour</button>
-      <button class="btn btn-primary" onclick="goToStep(3)">Suivant →</button>
+      <button class="btn btn-secondary" data-goto="1">← Retour</button>
+      <button class="btn btn-primary" data-goto="3">Suivant →</button>
     </div>
   </section>
 
@@ -1016,8 +1016,8 @@ textarea { resize: vertical; min-height: 80px; }
     </div>
 
     <div class="nav-bar">
-      <button class="btn btn-secondary" onclick="goToStep(2)">← Retour</button>
-      <button class="btn btn-primary" onclick="goToStep(4)">Suivant →</button>
+      <button class="btn btn-secondary" data-goto="2">← Retour</button>
+      <button class="btn btn-primary" data-goto="4">Suivant →</button>
     </div>
   </section>
 
@@ -1033,8 +1033,8 @@ textarea { resize: vertical; min-height: 80px; }
     </div>
 
     <div class="nav-bar">
-      <button class="btn btn-secondary" onclick="goToStep(3)">← Retour</button>
-      <button class="btn btn-primary" onclick="goToStep(5)">Suivant →</button>
+      <button class="btn btn-secondary" data-goto="3">← Retour</button>
+      <button class="btn btn-primary" data-goto="5">Suivant →</button>
     </div>
   </section>
 
@@ -1050,8 +1050,8 @@ textarea { resize: vertical; min-height: 80px; }
     </div>
 
     <div class="nav-bar">
-      <button class="btn btn-secondary" onclick="goToStep(4)">← Retour</button>
-      <button class="btn btn-primary" onclick="goToStep(6)">Récapitulatif →</button>
+      <button class="btn btn-secondary" data-goto="4">← Retour</button>
+      <button class="btn btn-primary" data-goto="6">Récapitulatif →</button>
     </div>
   </section>
 
@@ -1089,7 +1089,7 @@ textarea { resize: vertical; min-height: 80px; }
     </div>
 
     <div class="nav-bar">
-      <button class="btn btn-secondary" onclick="goToStep(5)">← Retour</button>
+      <button class="btn btn-secondary" data-goto="5">← Retour</button>
       <button class="btn btn-submit" onclick="submitForm()">Enregistrer la fiche →</button>
     </div>
   </section>
@@ -1738,6 +1738,15 @@ document.querySelectorAll('.step-pill').forEach(pill => {
 
 // Update draft count on load
 updateDraftCount();
+
+// ── Wire navigation buttons via event delegation (avoids "not defined" errors) 
+document.addEventListener('click', function(e) {
+  var btn = e.target.closest('[data-goto]');
+  if (btn) {
+    var n = parseInt(btn.getAttribute('data-goto'));
+    goToStep(n);
+  }
+});
 
 // ── LOAD FROM SHEETS (any device) ───────────────────────────
 async function loadFromSheets(cs) {
