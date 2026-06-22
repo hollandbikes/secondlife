@@ -1457,10 +1457,15 @@ async function submitForm() {
       saveDrafts(drafts);
       updateDraftCount();
       const banner = document.getElementById('success-banner');
-      banner.innerHTML = '✓ Fiche <strong>' + expectedSheet + '</strong> enregistrée dans Google Sheets ! <a href="https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit" target="_blank" style="color:white;text-decoration:underline;margin-left:8px;">Voir le Sheets →</a>';
+      const editUrl = WEBAPP_URL + '?cs=' + encodeURIComponent(cs);
+      banner.innerHTML = `✓ Fiche <strong>${expectedSheet}</strong> enregistrée dans Google Sheets !
+        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+          <a href="${editUrl}" style="color:white;text-decoration:underline;font-size:13px;">✏ Modifier cette fiche</a>
+          <a href="https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit" target="_blank" style="color:white;text-decoration:underline;font-size:13px;">📊 Voir le Sheets →</a>
+        </div>`;
       banner.style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      setTimeout(() => resetForm(), 6000);
+      setTimeout(() => resetForm(), 9000);
     } else {
       const banner = document.getElementById('success-banner');
       banner.innerHTML = "✓ Données envoyées — vérifie que l'onglet <strong>" + expectedSheet + "</strong> est apparu dans le <a href='https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit' target='_blank' style='color:white;text-decoration:underline;'>Sheets</a>.";
@@ -1681,23 +1686,43 @@ function deleteDraft(objetCS, e) {
 function renderDraftsList() {
   const drafts = getDrafts();
   const list = document.getElementById('drafts-list');
+
   if (drafts.length === 0) {
-    list.innerHTML = `<div class="drafts-empty">Aucune fiche en cours.<br>Commence une nouvelle fiche et elle s'enregistre automatiquement.</div>`;
+    list.innerHTML = `<div class="drafts-empty">Aucune fiche enregistrée.<br>Commence une nouvelle fiche et elle s'enregistre automatiquement.<br><br><span style="font-size:11px;color:#94a3b8;">↻ Recherche dans le Sheets…</span></div>`;
+    refreshSheetsInDraftsPanel();
     return;
   }
+
   list.innerHTML = drafts.map(d => {
-    const dt = d.savedAt ? new Date(d.savedAt).toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+    const isRemote = !!d.remote && !d.state;
+    let metaLine = '';
+    if (isRemote) {
+      const statusColor = d.statut === 'CONFORME' ? '#00b37e' : d.statut === 'NON CONFORME' ? '#e63946' : '#f4a261';
+      const dot = d.statut ? `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${statusColor};margin-right:4px;vertical-align:middle;"></span>` : '';
+      metaLine = `${d.technicien || ''} · ${dot}${d.statut || 'Sheets'} · ${d.date || ''}`;
+    } else {
+      const dt = d.savedAt
+        ? 'Local · ' + new Date(d.savedAt).toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})
+        : '';
+      metaLine = `${d.technicien || ''}${dt ? ' · ' + dt : ''}`;
+    }
+    const badge = isRemote
+      ? `<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:#e8f0fe;color:#3c72e8;margin-left:4px;">Sheets</span>`
+      : `<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:#e8f5e9;color:#2e7d32;margin-left:4px;">Local</span>`;
     return `<div class="draft-item">
       <div class="draft-info">
-        <div class="draft-title">CS-${d.objetCS}${d.marque ? ' · ' + d.marque : ''}</div>
-        <div class="draft-meta">${d.technicien || ''}${dt ? ' · Modifié ' + dt : ''}</div>
+        <div class="draft-title">CS-${d.objetCS}${d.marque ? ' · ' + d.marque : ''}${d.modele ? ' ' + d.modele : ''}${badge}</div>
+        <div class="draft-meta">${metaLine}</div>
       </div>
       <div class="draft-actions">
-        <button class="draft-load" onclick="loadDraft(${JSON.stringify(d).replace(/"/g,'&quot;')})">Ouvrir</button>
+        <button class="draft-load" onclick='openDraft(${JSON.stringify({objetCS:d.objetCS,remote:isRemote})})'>Ouvrir</button>
         <button class="draft-delete" onclick="deleteDraft('${d.objetCS}', event)">✕</button>
       </div>
     </div>`;
   }).join('');
+
+  // Always refresh from Sheets in background
+  refreshSheetsInDraftsPanel();
 }
 
 function toggleDraftsPanel() {
@@ -1923,81 +1948,100 @@ function showToast(msg, isError = false) {
 
 // ── LOAD FROM SHEETS LIST (panneau "Mes fiches") ─────────────
 async function refreshSheetsInDraftsPanel() {
+  // Avoid parallel refreshes
+  if (refreshSheetsInDraftsPanel._running) return;
+  refreshSheetsInDraftsPanel._running = true;
+
+  // Show a subtle sync indicator
   const list = document.getElementById('drafts-list');
-  // Show a loading row
-  list.insertAdjacentHTML('afterbegin',
-    '<div style="padding:12px 20px;font-size:12px;color:#94a3b8;">↻ Synchronisation avec le Sheets…</div>');
+  const syncEl = document.createElement('div');
+  syncEl.id = '_sync_indicator';
+  syncEl.style.cssText = 'padding:8px 20px;font-size:11px;color:#94a3b8;border-top:1px solid #f0f1f4;';
+  syncEl.textContent = '↻ Synchronisation avec le Sheets…';
+  list.appendChild(syncEl);
 
   try {
     const url = `${APPS_SCRIPT_URL}?action=list`;
     const resp = await fetch(url);
     const result = await resp.json();
-    if (!result.success) return;
 
-    // Merge remote list into local drafts
-    const remoteFiches = result.list || [];
-    const drafts = getDrafts();
+    if (result.success) {
+      const remoteFiches = result.list || [];
+      const drafts = getDrafts();
 
-    remoteFiches.forEach(remote => {
-      const existsLocally = drafts.some(d => d.objetCS === remote.cs);
-      if (!existsLocally) {
-        // Add a "remote-only" stub so it shows in the panel
-        drafts.push({
-          objetCS: remote.cs,
-          marque: remote.marque,
-          modele: remote.modele,
-          technicien: remote.technicien,
-          date: remote.date,
-          statut: remote.statut,
-          savedAt: null,
-          remote: true, // flag: no local data, will fetch from Sheets on open
-        });
+      // Add remote stubs for fiches not already in local drafts
+      remoteFiches.forEach(remote => {
+        const existsLocally = drafts.some(d => d.objetCS === remote.cs);
+        if (!existsLocally) {
+          drafts.push({
+            objetCS:    remote.cs,
+            marque:     remote.marque,
+            modele:     remote.modele,
+            technicien: remote.technicien,
+            date:       remote.date,
+            statut:     remote.statut,
+            savedAt:    null,
+            remote:     true,
+          });
+        } else {
+          // Update statut on existing local drafts to reflect Sheets state
+          const idx = drafts.findIndex(d => d.objetCS === remote.cs);
+          if (idx >= 0 && !drafts[idx].state) {
+            drafts[idx].statut = remote.statut;
+          }
+        }
+      });
+
+      saveDrafts(drafts);
+      updateDraftCount();
+
+      // Re-render without triggering another refresh
+      const listEl = document.getElementById('drafts-list');
+      const updatedDrafts = getDrafts();
+      if (updatedDrafts.length === 0) {
+        listEl.innerHTML = `<div class="drafts-empty">Aucune fiche enregistrée.</div>`;
+      } else {
+        listEl.innerHTML = updatedDrafts.map(d => {
+          const isRemote = !!d.remote && !d.state;
+          let metaLine = '';
+          if (isRemote) {
+            const sc = d.statut === 'CONFORME' ? '#00b37e' : d.statut === 'NON CONFORME' ? '#e63946' : '#f4a261';
+            const dot = d.statut ? `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${sc};margin-right:4px;vertical-align:middle;"></span>` : '';
+            metaLine = `${d.technicien || ''} · ${dot}${d.statut || 'Sheets'} · ${d.date || ''}`;
+          } else {
+            const dt = d.savedAt
+              ? 'Local · ' + new Date(d.savedAt).toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})
+              : '';
+            metaLine = `${d.technicien || ''}${dt ? ' · ' + dt : ''}`;
+          }
+          const badge = isRemote
+            ? `<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:#e8f0fe;color:#3c72e8;margin-left:4px;">Sheets</span>`
+            : `<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:#e8f5e9;color:#2e7d32;margin-left:4px;">Local</span>`;
+          return `<div class="draft-item">
+            <div class="draft-info">
+              <div class="draft-title">CS-${d.objetCS}${d.marque ? ' · ' + d.marque : ''}${d.modele ? ' ' + d.modele : ''}${badge}</div>
+              <div class="draft-meta">${metaLine}</div>
+            </div>
+            <div class="draft-actions">
+              <button class="draft-load" onclick='openDraft(${JSON.stringify({objetCS:d.objetCS,remote:isRemote})})'>Ouvrir</button>
+              <button class="draft-delete" onclick="deleteDraft('${d.objetCS}', event)">✕</button>
+            </div>
+          </div>`;
+        }).join('');
       }
-    });
-
-    saveDrafts(drafts);
-    updateDraftCount();
-    renderDraftsList();
-
+    }
   } catch(e) {
-    // Sheets unreachable, just show local
+    // Sheets unreachable — remove sync indicator silently
+    const el = document.getElementById('_sync_indicator');
+    if (el) el.remove();
+  } finally {
+    refreshSheetsInDraftsPanel._running = false;
+    const el = document.getElementById('_sync_indicator');
+    if (el) el.remove();
   }
 }
 
-// ── OVERRIDE renderDraftsList to handle remote stubs ─────────
-const _origRenderDraftsList = renderDraftsList;
-function renderDraftsList() {
-  const drafts = getDrafts();
-  const list = document.getElementById('drafts-list');
-
-  if (drafts.length === 0) {
-    list.innerHTML = `<div class="drafts-empty">Aucune fiche en cours.<br>Commence une nouvelle fiche et elle s'enregistre automatiquement.</div>`;
-    // Try to load from Sheets
-    refreshSheetsInDraftsPanel();
-    return;
-  }
-
-  list.innerHTML = drafts.map(d => {
-    const dt = d.savedAt
-      ? 'Local · ' + new Date(d.savedAt).toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})
-      : (d.statut ? `Sheets · ${d.statut}` : 'Sheets');
-    const statusColor = d.statut === 'CONFORME' ? '#00b37e' : d.statut === 'NON CONFORME' ? '#e63946' : '#f4a261';
-    const statusDot = d.statut ? `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${statusColor};margin-right:4px;"></span>` : '';
-    return `<div class="draft-item">
-      <div class="draft-info">
-        <div class="draft-title">CS-${d.objetCS}${d.marque ? ' · ' + d.marque : ''}${d.modele ? ' ' + d.modele : ''}</div>
-        <div class="draft-meta">${d.technicien || ''} · ${statusDot}${dt}</div>
-      </div>
-      <div class="draft-actions">
-        <button class="draft-load" onclick='openDraft(${JSON.stringify({objetCS:d.objetCS,remote:!!d.remote})})'>Ouvrir</button>
-        <button class="draft-delete" onclick="deleteDraft('${d.objetCS}', event)">✕</button>
-      </div>
-    </div>`;
-  }).join('');
-
-  // Always try to refresh from Sheets in background
-  refreshSheetsInDraftsPanel();
-}
+// renderDraftsList is defined earlier — no override needed
 
 // Smart open: local if available, Sheets otherwise
 async function openDraft(info) {
