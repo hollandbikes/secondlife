@@ -1156,7 +1156,7 @@ const INSPECTION_POINTS = [
   { id: 'p48', label: 'Le vélo ne présente pas d\'autocollant ou de résidu de colle', type: 'ok-na-pasok', aspect: null },
   { id: 'p49', label: 'Un autre marquage antivol est présent sur le vélo au nom de HB', type: 'oui-non', aspect: 'marque-num' },
   { id: 'p50', label: 'Les clés sont liées solidement au vélo / Total clé', type: 'ok-na-pasok', aspect: 'nb-cles' },
-  { group: 'Essai final', id: 'p51', label: 'Certificat de conformité et notice d\'utilisation fournis', type: 'oui-non-na', aspect: 'oui-non-na' },
+  { group: 'Essai final', id: 'p51', label: 'Certificat de conformité et notice d\'utilisation fournis', type: 'oui-non-na', aspect: null },
   { id: 'p52', label: 'Fiche objet CS à jour', type: 'oui-non', aspect: null },
   { id: 'p53', label: 'Le/la mécanicien(ne) a effectué un trajet de test (assistance + 25km/h)', type: 'ok-na-pasok', aspect: null },
 ];
@@ -1366,7 +1366,7 @@ async function submitForm() {
   overlay.querySelector('.submit-sub').textContent = 'Envoi vers Google Sheets';
 
   const cs = document.getElementById('objetCS').value.trim();
-  const expectedSheet = 'CS-' + cs;
+  const expectedSheet = cs;
 
   const payload = {
     header: {
