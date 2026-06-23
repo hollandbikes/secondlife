@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>E-Bike Service Center — Holland Bikes Montévrain</title>
+<link rel="icon" type="image/png" href="logo_flavicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -1241,7 +1242,7 @@ function buildInspection(containerId, points) {
     }
     
     html += `
-      <div class="insp-row">
+      <div class="insp-row" id="insp-row-${pt.id}">
         <div class="insp-label"><span class="insp-num">${num}.</span>${pt.label}</div>
         ${statutHtml}
         ${aspectHtml}
@@ -1320,7 +1321,32 @@ function goToStep(n) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ── REVIEW ──────────────────────────────────────────────────
+// ── JUMP TO FIRST PAS OK ────────────────────────────────────
+function jumpToFirstPasOk() {
+  // Trouver le premier point en PAS OK ou NON
+  const firstKo = INSPECTION_POINTS.find(pt => {
+    const v = inspValues[pt.id];
+    return v && (v.statut === 'PAS OK' || v.statut === 'NON');
+  });
+  if (!firstKo) return;
+
+  // Points 1-23 → étape 4, points 24-53 → étape 5
+  const idx = INSPECTION_POINTS.indexOf(firstKo);
+  const targetStep = idx < 23 ? 4 : 5;
+
+  goToStep(targetStep);
+
+  // Scroller sur la ligne après que le DOM soit prêt
+  setTimeout(() => {
+    const row = document.getElementById('insp-row-' + firstKo.id);
+    if (row) {
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      row.style.outline = '2px solid var(--warn)';
+      row.style.borderRadius = '8px';
+      setTimeout(() => { row.style.outline = ''; }, 2500);
+    }
+  }, 150);
+}
 function buildReview() {
   const fields = [
     ['Date', 'date'], ['Technicien', 'technicien'], ['N°Objet CS', 'objetCS'],
@@ -1345,9 +1371,14 @@ function buildReview() {
     else if (v.statut === 'NA') na++;
   });
   const total = INSPECTION_POINTS.length;
+  // Badge PAS OK cliquable si il y en a
+  const koBadge = pasOk > 0
+    ? `<div class="score-badge ko-badge" style="cursor:pointer;" onclick="jumpToFirstPasOk()" title="Aller au premier PAS OK">✗ ${pasOk} PAS OK ↗</div>`
+    : `<div class="score-badge ko-badge">✗ ${pasOk} PAS OK</div>`;
+
   document.getElementById('score-badges').innerHTML = `
     <div class="score-badge ok-badge">✓ ${ok} OK</div>
-    <div class="score-badge ko-badge">✗ ${pasOk} PAS OK</div>
+    ${koBadge}
     <div class="score-badge na-badge">— ${na} NA</div>
     <div class="score-badge" style="background:#f1f5f9;color:#64748b">${total - ok - pasOk - na} non renseignés</div>
   `;
@@ -1886,7 +1917,7 @@ async function loadFromSheets(cs) {
 
     // Show success toast
     showToast(`✓ Fiche CS-${cs} chargée depuis le Sheets`);
-    goToStep(0);
+    goToStep(6); // Aller directement au récapitulatif
 
   } catch (err) {
     overlay.classList.remove('visible');
