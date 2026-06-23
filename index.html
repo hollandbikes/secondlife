@@ -1281,9 +1281,9 @@ function setStatutGlobal(btn) {
 }
 
 // ── NAVIGATION ──────────────────────────────────────────────
-function goToStep(n) {
+function goToStep(n, skipValidation) {
   // Validation étape 0
-  if (currentStep === 0 && n > 0) {
+  if (!skipValidation && currentStep === 0 && n > 0) {
     const date = document.getElementById('date').value;
     const tech = document.getElementById('technicien').value.trim();
     const cs   = document.getElementById('objetCS').value.trim();
@@ -1917,7 +1917,7 @@ async function loadFromSheets(cs) {
 
     // Show success toast
     showToast(`✓ Fiche CS-${cs} chargée depuis le Sheets`);
-    goToStep(6); // Aller directement au récapitulatif
+    goToStep(6, true); // Aller directement au récapitulatif sans validation
 
   } catch (err) {
     overlay.classList.remove('visible');
