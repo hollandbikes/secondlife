@@ -466,9 +466,13 @@ textarea { resize: vertical; min-height: 80px; }
   text-align: center;
 }
 .sgbtn:hover { border-color: var(--ink-soft); color: var(--ink); }
-.sgbtn[data-val="CONFORME"].active    { background: #e8f5f0; border-color: var(--ok);     color: var(--ok); }
-.sgbtn[data-val="NON CONFORME"].active { background: #fdecea; border-color: var(--warn);   color: var(--warn); }
-.sgbtn[data-val="EN ATTENTE"].active  { background: #fff4e5; border-color: var(--caution); color: var(--caution); }
+.sgbtn[data-val="PRET"].active          { background: #e8f5e9; border-color: #2e7d32; color: #2e7d32; }
+.sgbtn[data-val="FACILE_RECO"].active   { background: #fff3e0; border-color: #e65100; color: #e65100; }
+.sgbtn[data-val="RECONDITIONNABLE"].active { background: #fffde7; border-color: #f9a825; color: #f9a825; }
+.sgbtn[data-val="UPWAY"].active        { background: #e3f2fd; border-color: #1565c0; color: #1565c0; }
+.sgbtn[data-val="M2IE"].active          { background: #ffebee; border-color: #c62828; color: #c62828; }
+.sgbtn[data-val="POUR_PIECES"].active   { background: #f5f5f5; border-color: #212121; color: #212121; }
+.sgbtn[data-val="RECO_INVERSION"].active { background: #fafafa; border-color: #9e9e9e; color: #616161; }
 
 /* ── NAV BUTTONS ─────────────────────────────────────────── */
 .nav-bar {
@@ -1076,9 +1080,13 @@ textarea { resize: vertical; min-height: 80px; }
     <div class="card">
       <div class="card-title">Statut global du vélo <span class="req">*</span></div>
       <div class="statut-global-btns">
-        <button class="sgbtn" data-val="CONFORME"     onclick="setStatutGlobal(this)">✓ Conforme</button>
-        <button class="sgbtn" data-val="NON CONFORME" onclick="setStatutGlobal(this)">✗ Non conforme</button>
-        <button class="sgbtn" data-val="EN ATTENTE"   onclick="setStatutGlobal(this)">⏳ En attente</button>
+        <button class="sgbtn" data-val="PRET"           onclick="setStatutGlobal(this)"><span style="color:#2e7d32">●</span> Prêt (en ligne)</button>
+        <button class="sgbtn" data-val="FACILE_RECO"    onclick="setStatutGlobal(this)"><span style="color:#e65100">●</span> Facile à reco</button>
+        <button class="sgbtn" data-val="RECONDITIONNABLE" onclick="setStatutGlobal(this)"><span style="color:#f9a825">●</span> Reconditionnable</button>
+        <button class="sgbtn" data-val="UPWAY"         onclick="setStatutGlobal(this)"><span style="color:#1565c0">●</span> Upway</button>
+        <button class="sgbtn" data-val="M2IE"           onclick="setStatutGlobal(this)"><span style="color:#c62828">●</span> M2ie</button>
+        <button class="sgbtn" data-val="POUR_PIECES"    onclick="setStatutGlobal(this)"><span style="color:#212121">●</span> Pour pièces</button>
+        <button class="sgbtn" data-val="RECO_INVERSION" onclick="setStatutGlobal(this)"><span style="color:#9e9e9e">●</span> Reco inversion (non élec)</button>
       </div>
     </div>
 
@@ -1728,7 +1736,8 @@ function renderDraftsList() {
     const isRemote = !!d.remote && !d.state;
     let metaLine = '';
     if (isRemote) {
-      const statusColor = d.statut === 'CONFORME' ? '#00b37e' : d.statut === 'NON CONFORME' ? '#e63946' : '#f4a261';
+      const statusColors = {'PRET':'#2e7d32','FACILE_RECO':'#e65100','RECONDITIONNABLE':'#f9a825','UPWAY':'#1565c0','M2IE':'#c62828','POUR_PIECES':'#212121','RECO_INVERSION':'#9e9e9e'};
+      const statusColor = statusColors[d.statut] || '#94a3b8';
       const dot = d.statut ? `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${statusColor};margin-right:4px;vertical-align:middle;"></span>` : '';
       metaLine = `${d.technicien || ''} · ${dot}${d.statut || 'Sheets'} · ${d.date || ''}`;
     } else {
@@ -2036,7 +2045,8 @@ async function refreshSheetsInDraftsPanel() {
           const isRemote = !!d.remote && !d.state;
           let metaLine = '';
           if (isRemote) {
-            const sc = d.statut === 'CONFORME' ? '#00b37e' : d.statut === 'NON CONFORME' ? '#e63946' : '#f4a261';
+            const statusColors = {'PRET':'#2e7d32','FACILE_RECO':'#e65100','RECONDITIONNABLE':'#f9a825','UPWAY':'#1565c0','M2IE':'#c62828','POUR_PIECES':'#212121','RECO_INVERSION':'#9e9e9e'};
+            const sc = statusColors[d.statut] || '#94a3b8';
             const dot = d.statut ? `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${sc};margin-right:4px;vertical-align:middle;"></span>` : '';
             metaLine = `${d.technicien || ''} · ${dot}${d.statut || 'Sheets'} · ${d.date || ''}`;
           } else {
