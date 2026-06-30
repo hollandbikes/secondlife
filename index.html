@@ -364,6 +364,56 @@ select {
 }
 textarea { resize: vertical; min-height: 80px; }
 
+/* ── CHAMPS VERROUILLÉS NA (vélo mécanique) ─────────────────── */
+.field.na-locked {
+  position: relative;
+}
+.field.na-locked label::after {
+  content: ' · Non applicable';
+  font-weight: 500;
+  font-style: italic;
+  color: #94a3b8;
+  font-size: 10.5px;
+}
+.field.na-locked input,
+.field.na-locked select {
+  background: repeating-linear-gradient(
+    -45deg,
+    #f1f5f9,
+    #f1f5f9 8px,
+    #e8eaee 8px,
+    #e8eaee 16px
+  );
+  color: #94a3b8;
+  font-weight: 700;
+  border-color: #d8dce3;
+  cursor: not-allowed;
+}
+.insp-row.na-locked {
+  background: repeating-linear-gradient(
+    -45deg,
+    #f8f9fb,
+    #f8f9fb 10px,
+    #eef0f3 10px,
+    #eef0f3 20px
+  );
+  opacity: 0.75;
+  border-radius: 8px;
+}
+.insp-row.na-locked .insp-label {
+  color: #94a3b8;
+}
+.insp-row.na-locked .insp-label::after {
+  content: ' (non applicable)';
+  font-style: italic;
+  font-size: 11px;
+}
+.insp-row.na-locked button,
+.insp-row.na-locked select,
+.insp-row.na-locked input {
+  cursor: not-allowed;
+}
+
 /* ── INSPECTION TABLE ────────────────────────────────────── */
 .insp-group {
   margin-bottom: 20px;
@@ -1330,10 +1380,12 @@ function applyVeloTypeLock() {
       input.disabled = true;
       input.title = 'Non applicable aux vélos mécaniques';
       field.title = 'Non applicable aux vélos mécaniques';
+      field.classList.add('na-locked');
     } else {
       input.disabled = false;
       input.title = '';
       field.title = '';
+      field.classList.remove('na-locked');
       if (input.value === 'NA') input.value = input.dataset.prevValue || '';
       if (input.tagName === 'SELECT') {
         // Retirer l'option NA injectée si elle n'est plus utilisée
@@ -1353,10 +1405,12 @@ function applyVeloTypeLock() {
       kmInput.disabled = true;
       kmInput.title = 'Non applicable aux vélos mécaniques';
       kmField.title = 'Non applicable aux vélos mécaniques';
+      kmField.classList.add('na-locked');
     } else {
       kmInput.disabled = false;
       kmInput.title = '';
       kmField.title = '';
+      kmField.classList.remove('na-locked');
       if (kmInput.value === 'NA') kmInput.value = kmInput.dataset.prevValue || '';
     }
   }
@@ -1392,10 +1446,14 @@ function applyVeloTypeLock() {
 
     if (isMeca) {
       MECANIQUE_AUTO_NA_INSPECTION.forEach(id => {
-        document.getElementById('insp-row-' + id)?.querySelectorAll('button, select, input').forEach(el => {
-          el.disabled = true;
-          el.title = 'Non applicable aux vélos mécaniques';
-        });
+        const row = document.getElementById('insp-row-' + id);
+        if (row) {
+          row.classList.add('na-locked');
+          row.querySelectorAll('button, select, input').forEach(el => {
+            el.disabled = true;
+            el.title = 'Non applicable aux vélos mécaniques';
+          });
+        }
       });
     }
   }
@@ -2002,6 +2060,7 @@ async function loadFromSheets(cs) {
         input.disabled = true;
         input.title = 'Non applicable aux vélos mécaniques';
         field.title = 'Non applicable aux vélos mécaniques';
+        field.classList.add('na-locked');
       });
       const kmField = document.getElementById('field-kilometrage');
       const kmInput = document.getElementById('kilometrage');
@@ -2009,6 +2068,7 @@ async function loadFromSheets(cs) {
         kmInput.disabled = true;
         kmInput.title = 'Non applicable aux vélos mécaniques';
         kmField.title = 'Non applicable aux vélos mécaniques';
+        kmField.classList.add('na-locked');
       }
     }
 
@@ -2018,6 +2078,19 @@ async function loadFromSheets(cs) {
 
     buildInspection('insp-mec',  INSPECTION_POINTS.slice(0, 23));
     buildInspection('insp-elec', INSPECTION_POINTS.slice(23), 24);
+
+    if (veloType === 'MECANIQUE') {
+      MECANIQUE_AUTO_NA_INSPECTION.forEach(id => {
+        const row = document.getElementById('insp-row-' + id);
+        if (row) {
+          row.classList.add('na-locked');
+          row.querySelectorAll('button, select, input').forEach(el => {
+            el.disabled = true;
+            el.title = 'Non applicable aux vélos mécaniques';
+          });
+        }
+      });
+    }
 
     Object.entries(inspValues).forEach(([id, val]) => {
       if (val.statut) {
