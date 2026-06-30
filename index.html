@@ -686,12 +686,28 @@ textarea { resize: vertical; min-height: 80px; }
         </div>
         <div class="field">
           <label for="technicien">Technicien <span class="req">*</span></label>
-          <input type="text" id="technicien" placeholder="Prénom Nom" required>
+          <input type="text" id="technicien" required>
         </div>
         <div class="field">
           <label for="objetCS">N° Objet CS <span class="req">*</span></label>
-          <input type="text" id="objetCS" placeholder="ex. 12345" required>
+          <input type="text" id="objetCS" required>
         </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Statut global du vélo <span class="req">*</span></div>
+      <div class="statut-global-btns">
+        <button class="sgbtn" data-val="PRET"           onclick="setStatutGlobal(this)"><span style="color:#2e7d32">●</span> Prêt (en ligne)</button>
+        <button class="sgbtn" data-val="FACILE_RECO"    onclick="setStatutGlobal(this)"><span style="color:#e65100">●</span> Facile à reco</button>
+        <button class="sgbtn" data-val="RECONDITIONNABLE" onclick="setStatutGlobal(this)"><span style="color:#f9a825">●</span> Reconditionnable</button>
+        <button class="sgbtn" data-val="UPWAY"         onclick="setStatutGlobal(this)"><span style="color:#1565c0">●</span> Upway</button>
+        <button class="sgbtn" data-val="M2IE"           onclick="setStatutGlobal(this)"><span style="color:#c62828">●</span> M2ie</button>
+        <button class="sgbtn" data-val="POUR_PIECES"    onclick="setStatutGlobal(this)"><span style="color:#212121">●</span> Pour pièces</button>
+        <button class="sgbtn" data-val="RECO_INVERSION" onclick="setStatutGlobal(this)"><span style="color:#9e9e9e">●</span> Reco inversion (non élec)</button>
+      </div>
+      <div id="statut-skip-notice" style="display:none;margin-top:12px;padding:10px 14px;border-radius:10px;background:#e3f2fd;color:#1565c0;font-size:13px;font-weight:600;">
+        ℹ Ce statut ne nécessite pas d'inspection détaillée — tous les champs seront marqués NA et tu seras dirigé directement vers le récapitulatif.
       </div>
     </div>
 
@@ -711,29 +727,36 @@ textarea { resize: vertical; min-height: 80px; }
     <div class="card">
       <div class="card-title">Général</div>
       <div class="field-grid">
+        <div class="field span-2">
+          <label>Type de vélo <span class="req">*</span></label>
+          <div class="statut-global-btns" id="velo-type-btns">
+            <button class="sgbtn" data-val="ELECTRIQUE" onclick="setVeloType(this)">⚡ Vélo électrique</button>
+            <button class="sgbtn" data-val="MECANIQUE"  onclick="setVeloType(this)">⚙ Vélo mécanique</button>
+          </div>
+        </div>
         <div class="field">
           <label for="numeroCadre">Numéro de cadre <span class="req">*</span></label>
-          <input type="text" id="numeroCadre" placeholder="WTU1234567" required>
+          <input type="text" id="numeroCadre" required>
         </div>
         <div class="field">
           <label for="marque">Marque <span class="req">*</span></label>
-          <input type="text" id="marque" placeholder="Trek, Specialized…">
+          <input type="text" id="marque">
         </div>
         <div class="field">
           <label for="modele">Modèle</label>
-          <input type="text" id="modele" placeholder="Allant+ 7">
+          <input type="text" id="modele">
         </div>
         <div class="field">
           <label for="anneeModele">Année modèle</label>
-          <input type="text" id="anneeModele" placeholder="2023">
+          <input type="text" id="anneeModele">
         </div>
-        <div class="field">
+        <div class="field" id="field-kilometrage">
           <label for="kilometrage">Kilométrage</label>
-          <input type="text" id="kilometrage" placeholder="1250 km">
+          <input type="text" id="kilometrage">
         </div>
         <div class="field">
           <label for="poidsVelo">Poids du vélo</label>
-          <input type="text" id="poidsVelo" placeholder="22.5 kg">
+          <input type="text" id="poidsVelo">
         </div>
       </div>
     </div>
@@ -755,19 +778,19 @@ textarea { resize: vertical; min-height: 80px; }
         </div>
         <div class="field">
           <label for="hauteurCadre">Hauteur du cadre</label>
-          <input type="text" id="hauteurCadre" placeholder='16", 18", L, XL…'>
+          <input type="text" id="hauteurCadre">
         </div>
         <div class="field">
           <label for="couleurPrincipale">Couleur principale</label>
-          <input type="text" id="couleurPrincipale" placeholder="Bleu">
+          <input type="text" id="couleurPrincipale">
         </div>
         <div class="field">
           <label for="couleurSecondaire">Couleur secondaire</label>
-          <input type="text" id="couleurSecondaire" placeholder="Noir">
+          <input type="text" id="couleurSecondaire">
         </div>
         <div class="field">
           <label for="poidsNetBrut">Poids net / brut</label>
-          <input type="text" id="poidsNetBrut" placeholder="22 / 26 kg">
+          <input type="text" id="poidsNetBrut">
         </div>
       </div>
     </div>
@@ -788,7 +811,7 @@ textarea { resize: vertical; min-height: 80px; }
     <div class="card">
       <div class="card-title">Moteur</div>
       <div class="field-grid cols-3">
-        <div class="field">
+        <div class="field" data-mecanique-na="true">
           <label for="moteurMarque">Marque</label>
           <select id="moteurMarque" onchange="toggleAutre('moteurMarque')">
             <option value="">— Sélectionner</option>
@@ -802,13 +825,13 @@ textarea { resize: vertical; min-height: 80px; }
             <option>Mahle</option>
             <option>Autre</option>
           </select>
-          <input type="text" id="moteurMarque_autre" class="autre-input" placeholder="Préciser la marque…">
+          <input type="text" id="moteurMarque_autre" class="autre-input">
         </div>
-        <div class="field">
+        <div class="field" data-mecanique-na="true">
           <label for="moteurModele">Modèle</label>
-          <input type="text" id="moteurModele" placeholder="Performance Line">
+          <input type="text" id="moteurModele">
         </div>
-        <div class="field">
+        <div class="field" data-mecanique-na="true">
           <label for="moteurPosition">Position</label>
           <select id="moteurPosition" onchange="toggleAutre('moteurPosition')">
             <option value="">— Sélectionner</option>
@@ -817,13 +840,13 @@ textarea { resize: vertical; min-height: 80px; }
             <option>Moyeu arrière</option>
             <option>Autre</option>
           </select>
-          <input type="text" id="moteurPosition_autre" class="autre-input" placeholder="Préciser la position…">
+          <input type="text" id="moteurPosition_autre" class="autre-input">
         </div>
-        <div class="field">
+        <div class="field" data-mecanique-na="true">
           <label for="moteurCouple">Couple (Nm)</label>
-          <input type="text" id="moteurCouple" placeholder="65">
+          <input type="text" id="moteurCouple">
         </div>
-        <div class="field">
+        <div class="field" data-mecanique-na="true">
           <label for="assistanceType">Type d'assistance</label>
           <select id="assistanceType">
             <option value="">— Sélectionner</option>
@@ -832,9 +855,9 @@ textarea { resize: vertical; min-height: 80px; }
             <option>Mixte</option>
           </select>
         </div>
-        <div class="field">
+        <div class="field" data-mecanique-na="true">
           <label for="assistanceVitesse">Vitesse max assistance (km/h)</label>
-          <input type="text" id="assistanceVitesse" placeholder="25">
+          <input type="text" id="assistanceVitesse">
         </div>
       </div>
     </div>
@@ -842,11 +865,11 @@ textarea { resize: vertical; min-height: 80px; }
     <div class="card">
       <div class="card-title">Batterie</div>
       <div class="field-grid cols-3">
-        <div class="field">
+        <div class="field" data-mecanique-na="true">
           <label for="batterieCapacite">Capacité (Wh)</label>
-          <input type="text" id="batterieCapacite" placeholder="500">
+          <input type="text" id="batterieCapacite">
         </div>
-        <div class="field">
+        <div class="field" data-mecanique-na="true">
           <label for="batteriePosition">Position</label>
           <select id="batteriePosition">
             <option value="">— Sélectionner</option>
@@ -855,7 +878,7 @@ textarea { resize: vertical; min-height: 80px; }
             <option>Externe</option>
           </select>
         </div>
-        <div class="field">
+        <div class="field" data-mecanique-na="true">
           <label for="batterieAmovible">Amovible</label>
           <select id="batterieAmovible">
             <option value="">— Sélectionner</option>
@@ -863,17 +886,17 @@ textarea { resize: vertical; min-height: 80px; }
             <option>Non</option>
           </select>
         </div>
-        <div class="field">
+        <div class="field" data-mecanique-na="true">
           <label for="batterieEtat">État (%)</label>
-          <input type="text" id="batterieEtat" placeholder="88%">
+          <input type="text" id="batterieEtat">
         </div>
-        <div class="field">
+        <div class="field" data-mecanique-na="true">
           <label for="batterieCycles">Cycles de charge</label>
-          <input type="text" id="batterieCycles" placeholder="142">
+          <input type="text" id="batterieCycles">
         </div>
-        <div class="field">
+        <div class="field" data-mecanique-na="true">
           <label for="display">Display / Écran</label>
-          <input type="text" id="display" placeholder="Kiox 300">
+          <input type="text" id="display">
         </div>
       </div>
     </div>
@@ -896,7 +919,7 @@ textarea { resize: vertical; min-height: 80px; }
       <div class="field-grid cols-3">
         <div class="field">
           <label for="vitessesNombre">Nombre de vitesses</label>
-          <input type="text" id="vitessesNombre" placeholder="9">
+          <input type="text" id="vitessesNombre">
         </div>
         <div class="field">
           <label for="passageVitesse">Passage de vitesse</label>
@@ -924,11 +947,11 @@ textarea { resize: vertical; min-height: 80px; }
         </div>
         <div class="field">
           <label for="derailleurMarque">Dérailleur (Marque)</label>
-          <input type="text" id="derailleurMarque" placeholder="Shimano">
+          <input type="text" id="derailleurMarque">
         </div>
         <div class="field span-2">
           <label for="derailleurModele">Dérailleur (Modèle)</label>
-          <input type="text" id="derailleurModele" placeholder="Deore">
+          <input type="text" id="derailleurModele">
         </div>
       </div>
     </div>
@@ -947,11 +970,11 @@ textarea { resize: vertical; min-height: 80px; }
         </div>
         <div class="field">
           <label for="freinAvantMarque">Frein avant (Marque)</label>
-          <input type="text" id="freinAvantMarque" placeholder="Shimano">
+          <input type="text" id="freinAvantMarque">
         </div>
         <div class="field">
           <label for="freinAvantModele">Frein avant (Modèle)</label>
-          <input type="text" id="freinAvantModele" placeholder="MT200">
+          <input type="text" id="freinAvantModele">
         </div>
         <div class="field">
           <label for="freinArriereSysteme">Frein arrière (Système)</label>
@@ -964,11 +987,11 @@ textarea { resize: vertical; min-height: 80px; }
         </div>
         <div class="field">
           <label for="freinArriereMarque">Frein arrière (Marque)</label>
-          <input type="text" id="freinArriereMarque" placeholder="Shimano">
+          <input type="text" id="freinArriereMarque">
         </div>
         <div class="field">
           <label for="freinArriereModele">Frein arrière (Modèle)</label>
-          <input type="text" id="freinArriereModele" placeholder="MT200">
+          <input type="text" id="freinArriereModele">
         </div>
       </div>
     </div>
@@ -978,11 +1001,11 @@ textarea { resize: vertical; min-height: 80px; }
       <div class="field-grid cols-3">
         <div class="field">
           <label for="pneusModele">Pneus (Modèle)</label>
-          <input type="text" id="pneusModele" placeholder="Bontrager H2">
+          <input type="text" id="pneusModele">
         </div>
         <div class="field">
           <label for="pneusTaille">Taille de pneu</label>
-          <input type="text" id="pneusTaille" placeholder="700x45c">
+          <input type="text" id="pneusTaille">
         </div>
         <div class="field">
           <label for="roueTaille">Taille de roue</label>
@@ -1082,22 +1105,9 @@ textarea { resize: vertical; min-height: 80px; }
     </div>
 
     <div class="card">
-      <div class="card-title">Statut global du vélo <span class="req">*</span></div>
-      <div class="statut-global-btns">
-        <button class="sgbtn" data-val="PRET"           onclick="setStatutGlobal(this)"><span style="color:#2e7d32">●</span> Prêt (en ligne)</button>
-        <button class="sgbtn" data-val="FACILE_RECO"    onclick="setStatutGlobal(this)"><span style="color:#e65100">●</span> Facile à reco</button>
-        <button class="sgbtn" data-val="RECONDITIONNABLE" onclick="setStatutGlobal(this)"><span style="color:#f9a825">●</span> Reconditionnable</button>
-        <button class="sgbtn" data-val="UPWAY"         onclick="setStatutGlobal(this)"><span style="color:#1565c0">●</span> Upway</button>
-        <button class="sgbtn" data-val="M2IE"           onclick="setStatutGlobal(this)"><span style="color:#c62828">●</span> M2ie</button>
-        <button class="sgbtn" data-val="POUR_PIECES"    onclick="setStatutGlobal(this)"><span style="color:#212121">●</span> Pour pièces</button>
-        <button class="sgbtn" data-val="RECO_INVERSION" onclick="setStatutGlobal(this)"><span style="color:#9e9e9e">●</span> Reco inversion (non élec)</button>
-      </div>
-    </div>
-
-    <div class="card">
       <div class="card-title">Notes</div>
       <div class="field">
-        <textarea id="notes" placeholder="Observations, pièces commandées, points à surveiller…"></textarea>
+        <textarea id="notes"></textarea>
       </div>
     </div>
 
@@ -1171,7 +1181,7 @@ const INSPECTION_POINTS = [
   { id: 'p50', label: 'Les clés sont liées solidement au vélo / Total clé', type: 'ok-na-pasok', aspect: 'nb-cles' },
   { group: 'Essai final', id: 'p51', label: 'Certificat de conformité et notice d\'utilisation fournis', type: 'oui-non-na', aspect: null },
   { id: 'p52', label: 'Fiche objet CS à jour', type: 'oui-non', aspect: null },
-  { id: 'p53', label: 'Le/la mécanicien(ne) a effectué un trajet de test (assistance + 25km/h)', type: 'ok-na-pasok', aspect: null },
+  { id: 'p53', label: 'Trajet de test (assistance à 25km/h si applicable)', type: 'ok-na-pasok', aspect: null },
 ];
 
 // ── STATE ───────────────────────────────────────────────────
@@ -1181,10 +1191,10 @@ let statutGlobal = '';
 const inspValues = {}; // { p1: { statut: 'OK', aspect: 'BON' }, … }
 
 // ── BUILD INSPECTION HTML ───────────────────────────────────
-function buildInspection(containerId, points) {
+function buildInspection(containerId, points, startNum) {
   const container = document.getElementById(containerId);
   let html = '';
-  let num = 1;
+  let num = startNum || 1;
   
   points.forEach(pt => {
     if (pt.group) {
@@ -1265,6 +1275,112 @@ function buildInspection(containerId, points) {
   container.innerHTML = html;
 }
 
+// Points électriques à préremplir en NA pour un vélo mécanique
+// (correspond aux numéros locaux 1–11, 13–14, 23 de l'étape Électrique & Finales)
+const MECANIQUE_AUTO_NA_INSPECTION = [
+  'p24','p25','p26','p27','p28','p29','p30','p31','p32','p33','p34', // 1–11
+  'p36','p37',                                                        // 13–14
+  'p46'                                                                // 23
+];
+
+let veloType = ''; // 'ELECTRIQUE' | 'MECANIQUE'
+
+function setVeloType(btn) {
+  const clickedVal = btn.dataset.val;
+
+  if (veloType === clickedVal) {
+    // Déclic : on désactive et on retire tous les préremplissages NA
+    veloType = '';
+    document.querySelectorAll('#velo-type-btns .sgbtn').forEach(b => b.classList.remove('active'));
+    applyVeloTypeLock();
+    return;
+  }
+
+  document.querySelectorAll('#velo-type-btns .sgbtn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  veloType = clickedVal;
+  applyVeloTypeLock();
+}
+
+function applyVeloTypeLock() {
+  const isMeca = veloType === 'MECANIQUE';
+
+  // Verrouiller les champs électriques (étape Caractéristiques) + Kilométrage
+  document.querySelectorAll('[data-mecanique-na="true"]').forEach(field => {
+    const input = field.querySelector('input, select');
+    if (!input) return;
+    if (isMeca) {
+      input.dataset.prevValue = input.value; // garder une trace si on revient en arrière
+      input.value = 'NA';
+      input.disabled = true;
+      input.title = 'Non applicable aux vélos mécaniques';
+      field.title = 'Non applicable aux vélos mécaniques';
+    } else {
+      input.disabled = false;
+      input.title = '';
+      field.title = '';
+      if (input.value === 'NA') input.value = input.dataset.prevValue || '';
+    }
+  });
+
+  // Kilométrage : verrouillé uniquement si mécanique ET pas d'assistance (cas vélo 100% mécanique)
+  const kmField = document.getElementById('field-kilometrage');
+  const kmInput = document.getElementById('kilometrage');
+  if (kmField && kmInput) {
+    if (isMeca) {
+      kmInput.dataset.prevValue = kmInput.value;
+      kmInput.value = 'NA';
+      kmInput.disabled = true;
+      kmInput.title = 'Non applicable aux vélos mécaniques';
+      kmField.title = 'Non applicable aux vélos mécaniques';
+    } else {
+      kmInput.disabled = false;
+      kmInput.title = '';
+      kmField.title = '';
+      if (kmInput.value === 'NA') kmInput.value = kmInput.dataset.prevValue || '';
+    }
+  }
+
+  // Préremplir les points d'inspection électriques concernés en NA et les verrouiller
+  MECANIQUE_AUTO_NA_INSPECTION.forEach(id => {
+    if (isMeca) {
+      inspValues[id] = { statut: 'NA', aspect: null, _autoNa: true };
+    } else if (inspValues[id] && inspValues[id]._autoNa) {
+      delete inspValues[id];
+    }
+  });
+
+  // Re-render la section inspection électrique pour refléter les NA + verrouillage visuel
+  if (document.getElementById('insp-elec')) {
+    buildInspection('insp-elec', INSPECTION_POINTS.slice(23), 24);
+
+    // Restaurer l'état actif de tous les boutons selon inspValues (pas seulement les auto-NA)
+    Object.entries(inspValues).forEach(([id, val]) => {
+      if (!val.statut) return;
+      const btn = document.querySelector(`.sbtn[data-id="${id}"][data-val="${val.statut}"]`);
+      if (btn) {
+        const v = val.statut;
+        if (v === 'OK' || v === 'OUI') btn.classList.add('active-ok');
+        else if (v === 'NA') btn.classList.add('active-na');
+        else if (v === 'PAS OK' || v === 'NON') btn.classList.add('active-pasok');
+      }
+      if (val.aspect) {
+        const asp = document.getElementById('asp_' + id);
+        if (asp) asp.value = val.aspect;
+      }
+    });
+
+    if (isMeca) {
+      MECANIQUE_AUTO_NA_INSPECTION.forEach(id => {
+        document.getElementById('insp-row-' + id)?.querySelectorAll('button, select, input').forEach(el => {
+          el.disabled = true;
+          el.title = 'Non applicable aux vélos mécaniques';
+        });
+      });
+    }
+  }
+}
+
 function setStatut(btn) {
   const id = btn.dataset.id;
   const val = btn.dataset.val;
@@ -1287,9 +1403,47 @@ function setAspect(id, val) {
 }
 
 function setStatutGlobal(btn) {
-  document.querySelectorAll('.sgbtn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.sgbtn').forEach(b => {
+    if (b.closest('#velo-type-btns')) return; // ne pas toucher au sélecteur type de vélo
+    b.classList.remove('active');
+  });
   btn.classList.add('active');
   statutGlobal = btn.dataset.val;
+
+  const notice = document.getElementById('statut-skip-notice');
+  const isBypass = statutGlobal === 'UPWAY' || statutGlobal === 'M2IE';
+  if (notice) notice.style.display = isBypass ? 'block' : 'none';
+
+  if (isBypass) {
+    applyFullBypassNA();
+  }
+}
+
+// Remplit tout le formulaire en NA et saute directement au récapitulatif
+// — utilisé pour les statuts Upway / M2ie qui ne nécessitent pas d'inspection détaillée.
+function applyFullBypassNA() {
+  // Champs texte/select des étapes Caractéristiques, Électrique, Mécanique
+  const fieldsToFill = [
+    'numeroCadre','marque','modele','anneeModele','kilometrage','poidsVelo',
+    'materiau','hauteurCadre','couleurPrincipale','couleurSecondaire','poidsNetBrut',
+    'moteurMarque','moteurModele','moteurPosition','moteurCouple','assistanceType','assistanceVitesse',
+    'batterieCapacite','batteriePosition','batterieAmovible','batterieEtat','batterieCycles','display',
+    'vitessesNombre','passageVitesse','derailleurType','derailleurMarque','derailleurModele',
+    'freinAvantSysteme','freinAvantMarque','freinAvantModele','freinArriereSysteme','freinArriereMarque','freinArriereModele',
+    'pneusModele','pneusTaille','roueTaille','fourche','bequille'
+  ];
+  fieldsToFill.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.value) el.value = 'NA';
+  });
+
+  // Tous les points d'inspection en NA
+  INSPECTION_POINTS.forEach(pt => {
+    inspValues[pt.id] = { statut: 'NA', aspect: null };
+  });
+
+  // Aller directement au récapitulatif
+  goToStep(6, true);
 }
 
 // ── NAVIGATION ──────────────────────────────────────────────
@@ -1301,6 +1455,17 @@ function goToStep(n, skipValidation) {
     const cs   = document.getElementById('objetCS').value.trim();
     if (!date || !tech || !cs) {
       alert('Merci de remplir la Date, le Technicien et le N°Objet CS.');
+      return;
+    }
+    if (!statutGlobal) {
+      alert('Merci de sélectionner le statut global du vélo.');
+      return;
+    }
+  }
+  // Validation étape 1 — type de vélo obligatoire
+  if (!skipValidation && currentStep === 1 && n > 1) {
+    if (!veloType) {
+      alert('Merci d\'indiquer si le vélo est électrique ou mécanique.');
       return;
     }
   }
@@ -1325,7 +1490,7 @@ function goToStep(n, skipValidation) {
   // Header status
   const marque = document.getElementById('marque').value;
   const cs = document.getElementById('objetCS').value;
-  document.getElementById('header-status').textContent = cs ? `CS-${cs}${marque ? ' · ' + marque : ''}` : 'Nouvelle fiche';
+  document.getElementById('header-status').textContent = cs ? `${cs}${marque ? ' · ' + marque : ''}` : 'Nouvelle fiche';
   
   // Récap
   if (n === 6) buildReview();
@@ -1419,6 +1584,7 @@ async function submitForm() {
     },
     caracteristiques: {
       general: {
+        typeVelo:    veloType,
         numeroCadre: document.getElementById('numeroCadre').value,
         marque:      document.getElementById('marque').value,
         modele:      document.getElementById('modele').value,
@@ -1496,9 +1662,6 @@ async function submitForm() {
     overlay.classList.remove('visible');
 
     if (confirmed) {
-      const drafts = getDrafts().filter(d => d.objetCS !== cs);
-      saveDrafts(drafts);
-      updateDraftCount();
       const banner = document.getElementById('success-banner');
       const editUrl = WEBAPP_URL + '?cs=' + encodeURIComponent(cs);
       banner.innerHTML = `✓ Fiche <strong>${expectedSheet}</strong> enregistrée dans Google Sheets !
@@ -1577,12 +1740,18 @@ function resetForm() {
   // Reset all inputs
   document.querySelectorAll('input, select, textarea').forEach(el => {
     el.value = '';
+    el.disabled = false;
+    el.title = '';
   });
+  document.querySelectorAll('[data-mecanique-na="true"]').forEach(f => f.title = '');
   Object.keys(inspValues).forEach(k => delete inspValues[k]);
   statutGlobal = '';
+  veloType = '';
   document.querySelectorAll('.sbtn').forEach(b => b.className = 'sbtn');
   document.querySelectorAll('.sgbtn').forEach(b => b.classList.remove('active'));
-  goToStep(0);
+  const notice = document.getElementById('statut-skip-notice');
+  if (notice) notice.style.display = 'none';
+  goToStep(0, true);
 }
 
 // ── AUTRE FIELD TOGGLE ──────────────────────────────────────
@@ -1611,146 +1780,13 @@ function getSelectValue(fieldId) {
 }
 
 // ── DRAFT / LOCAL STORAGE SYSTEM ────────────────────────────
-const STORAGE_KEY = 'hb_ebsc_drafts';
-
-function getDrafts() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-  catch { return []; }
-}
-
-function saveDrafts(drafts) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(drafts));
-}
+// ── PANNEAU "MES FICHES" — 100% piloté par le Google Sheets ─────
+// Aucun stockage local : la liste est toujours rechargée en direct
+// depuis le Summary du Sheets, qui est l'unique source de vérité.
 
 function updateDraftCount() {
-  const drafts = getDrafts();
-  document.getElementById('draft-count').textContent = drafts.length;
-}
-
-// Auto-save current form state as draft
-function autoSave() {
-  const cs = document.getElementById('objetCS').value.trim();
-  if (!cs) return; // don't save if no CS number yet
-  
-  const state = captureFormState();
-  const drafts = getDrafts();
-  const existingIdx = drafts.findIndex(d => d.objetCS === cs);
-  
-  const draft = {
-    objetCS: cs,
-    marque: document.getElementById('marque').value,
-    technicien: document.getElementById('technicien').value,
-    date: document.getElementById('date').value,
-    savedAt: new Date().toISOString(),
-    step: currentStep,
-    state,
-  };
-  
-  if (existingIdx >= 0) drafts[existingIdx] = draft;
-  else drafts.unshift(draft);
-  
-  saveDrafts(drafts);
-  updateDraftCount();
-}
-
-function captureFormState() {
-  const state = { fields: {}, inspection: JSON.parse(JSON.stringify(inspValues)), statutGlobal };
-  document.querySelectorAll('input[id], select[id], textarea[id]').forEach(el => {
-    if (el.id) state.fields[el.id] = el.value;
-  });
-  return state;
-}
-
-function loadDraft(draft) {
-  const s = draft.state;
-  // Restore fields
-  Object.entries(s.fields || {}).forEach(([id, val]) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.value = val;
-      // Show autre field if needed
-      if (id.endsWith('_autre') && val) {
-        el.classList.add('visible');
-      }
-      // Trigger autre toggle for select fields
-      if (!id.endsWith('_autre') && el.tagName === 'SELECT' && val === 'Autre') {
-        const other = document.getElementById(id + '_autre');
-        if (other) other.classList.add('visible');
-      }
-    }
-  });
-  // Restore inspection
-  Object.keys(inspValues).forEach(k => delete inspValues[k]);
-  Object.assign(inspValues, s.inspection || {});
-  
-  // Re-render inspection buttons
-  buildInspection('insp-mec',  INSPECTION_POINTS.slice(0, 23));
-  buildInspection('insp-elec', INSPECTION_POINTS.slice(23));
-  
-  // Restore button states
-  Object.entries(inspValues).forEach(([id, val]) => {
-    if (val.statut) {
-      const btn = document.querySelector(`.sbtn[data-id="${id}"][data-val="${val.statut}"]`);
-      if (btn) {
-        btn.className = 'sbtn';
-        const v = val.statut;
-        if (v === 'OK' || v === 'OUI') btn.classList.add('active-ok');
-        else if (v === 'NA') btn.classList.add('active-na');
-        else if (v === 'PAS OK' || v === 'NON') btn.classList.add('active-pasok');
-      }
-    }
-    if (val.aspect) {
-      const asp = document.getElementById('asp_' + id);
-      if (asp) asp.value = val.aspect;
-    }
-  });
-  
-  // Restore statut global
-  statutGlobal = s.statutGlobal || '';
-  if (statutGlobal) {
-    document.querySelectorAll('.sgbtn').forEach(b => b.classList.remove('active'));
-    const sgbtn = document.querySelector(`.sgbtn[data-val="${statutGlobal}"]`);
-    if (sgbtn) sgbtn.classList.add('active');
-  }
-  
-  toggleDraftsPanel();
-  goToStep(draft.step || 0);
-}
-
-function deleteDraft(objetCS, e) {
-  e.stopPropagation();
-  if (!confirm(`Supprimer la fiche CS-${objetCS} ?`)) return;
-  const drafts = getDrafts().filter(d => d.objetCS !== objetCS);
-  saveDrafts(drafts);
-  renderDraftsList();
-  updateDraftCount();
-}
-
-// ── PANNEAU "MES FICHES" ──────────────────────────────────────
-// Affiche deux sections :
-//  1. Brouillons locaux jamais envoyés (créés sur cet appareil, pas encore soumis)
-//  2. Fiches du Sheets (source de vérité — toujours rechargées en direct)
-
-function renderLocalOnlyDrafts() {
-  const drafts = getDrafts().filter(d => d.state && !d.existsRemotely);
-  if (drafts.length === 0) return '';
-  return drafts.map(d => {
-    const dt = d.savedAt
-      ? new Date(d.savedAt).toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})
-      : '';
-    return `<div class="draft-item">
-      <div class="draft-info">
-        <div class="draft-title">CS-${d.objetCS}${d.marque ? ' · ' + d.marque : ''}${d.modele ? ' ' + d.modele : ''}
-          <span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:#fff4e5;color:#e65100;margin-left:4px;">Brouillon non envoyé</span>
-        </div>
-        <div class="draft-meta">${d.technicien || ''}${dt ? ' · ' + dt : ''}</div>
-      </div>
-      <div class="draft-actions">
-        <button class="draft-load" onclick='openDraft(${JSON.stringify({objetCS:d.objetCS,remote:false})})'>Ouvrir</button>
-        <button class="draft-delete" onclick="deleteDraft('${d.objetCS}', event)">✕</button>
-      </div>
-    </div>`;
-  }).join('');
+  // Le compteur reflète le nombre de fiches dans le Sheets, mis à jour
+  // dès que le panneau est ouvert (voir loadSheetsFichesIntoPanel).
 }
 
 function renderSheetsFiches(fiches) {
@@ -1763,11 +1799,11 @@ function renderSheetsFiches(fiches) {
     const dot = `<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${sc};margin-right:4px;vertical-align:middle;"></span>`;
     return `<div class="draft-item">
       <div class="draft-info">
-        <div class="draft-title">CS-${f.cs}${f.marque ? ' · ' + f.marque : ''}${f.modele ? ' ' + f.modele : ''}</div>
+        <div class="draft-title">${f.cs}${f.marque ? ' · ' + f.marque : ''}${f.modele ? ' ' + f.modele : ''}</div>
         <div class="draft-meta">${f.technicien || ''} · ${dot}${label} · ${f.date || ''}</div>
       </div>
       <div class="draft-actions">
-        <button class="draft-load" onclick='openDraft(${JSON.stringify({objetCS:f.cs,remote:true})})'>Ouvrir</button>
+        <button class="draft-load" onclick='openDraft(${JSON.stringify({objetCS:f.cs})})'>Ouvrir</button>
         ${f.sheetsUrl ? `<a href="${f.sheetsUrl}" target="_blank" title="Voir dans le Sheets" style="display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;background:#e8f0fe;color:#1a73e8;text-decoration:none;font-size:14px;">📊</a>` : ''}
       </div>
     </div>`;
@@ -1776,13 +1812,10 @@ function renderSheetsFiches(fiches) {
 
 function renderDraftsList() {
   const list = document.getElementById('drafts-list');
-  const localHtml = renderLocalOnlyDrafts();
-
-  list.innerHTML = (localHtml || '') + `
+  list.innerHTML = `
     <div id="sheets-fiches-zone" style="padding:16px 20px;font-size:12px;color:#94a3b8;text-align:center;">
       ↻ Chargement des fiches depuis le Sheets…
     </div>`;
-
   loadSheetsFichesIntoPanel();
 }
 
@@ -1793,25 +1826,22 @@ async function loadSheetsFichesIntoPanel() {
     const resp = await fetch(url);
     const result = await resp.json();
 
-    if (!zone) return; // panel was closed in the meantime
+    if (!zone) return; // le panneau a été fermé pendant le chargement
 
     if (result.success && result.list && result.list.length > 0) {
-      // Trier par date décroissante (les plus récentes en premier)
       const sorted = [...result.list].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
       zone.outerHTML = renderSheetsFiches(sorted);
+      const countEl = document.getElementById('draft-count');
+      if (countEl) countEl.textContent = sorted.length;
     } else if (result.success) {
       zone.outerHTML = `<div class="drafts-empty">Aucune fiche dans le Sheets pour le moment.</div>`;
+      const countEl = document.getElementById('draft-count');
+      if (countEl) countEl.textContent = '0';
     } else {
       zone.outerHTML = `<div style="padding:16px 20px;font-size:12px;color:#e63946;text-align:center;">✗ Erreur : ${result.error || 'inconnue'}</div>`;
     }
   } catch (e) {
     if (zone) zone.outerHTML = `<div style="padding:16px 20px;font-size:12px;color:#e63946;text-align:center;">✗ Sheets inaccessible — vérifie ta connexion</div>`;
-  }
-
-  // Si la liste est complètement vide (pas de brouillon local non plus)
-  const list = document.getElementById('drafts-list');
-  if (list && list.children.length === 0) {
-    list.innerHTML = `<div class="drafts-empty">Aucune fiche enregistrée.<br>Commence une nouvelle fiche et elle s'enregistre automatiquement.</div>`;
   }
 }
 
@@ -1822,18 +1852,10 @@ function toggleDraftsPanel() {
 }
 
 function newFiche() {
-  if (document.getElementById('objetCS').value && !confirm('Commencer une nouvelle fiche ? La fiche actuelle reste dans "Mes fiches".')) return;
-  autoSave(); // save current before clearing
+  if (document.getElementById('objetCS').value && !confirm('Commencer une nouvelle fiche ? La fiche actuelle ne sera pas conservée si elle n\'a pas été envoyée.')) return;
   resetForm();
   toggleDraftsPanel();
 }
-
-// Auto-save on any input change
-document.addEventListener('change', () => autoSave());
-document.addEventListener('input', () => {
-  const cs = document.getElementById('objetCS');
-  if (cs && cs.value) autoSave();
-});
 
 // ── INIT ─────────────────────────────────────────────────────
 // Set today's date
@@ -1841,7 +1863,7 @@ document.getElementById('date').valueAsDate = new Date();
 
 // Build inspection sections
 buildInspection('insp-mec',  INSPECTION_POINTS.slice(0, 23));
-buildInspection('insp-elec', INSPECTION_POINTS.slice(23));
+buildInspection('insp-elec', INSPECTION_POINTS.slice(23), 24);
 
 // Stepper click navigation
 document.querySelectorAll('.step-pill').forEach(pill => {
@@ -1851,8 +1873,17 @@ document.querySelectorAll('.step-pill').forEach(pill => {
   });
 });
 
-// Update draft count on load
-updateDraftCount();
+// Précharger le compteur de fiches depuis le Sheets au chargement de la page
+(async function preloadDraftCount() {
+  try {
+    const resp = await fetch(`${APPS_SCRIPT_URL}?action=list`);
+    const result = await resp.json();
+    if (result.success) {
+      const countEl = document.getElementById('draft-count');
+      if (countEl) countEl.textContent = (result.list || []).length;
+    }
+  } catch(e) {}
+})();
 
 // ── Wire navigation buttons via event delegation (avoids "not defined" errors) 
 document.addEventListener('click', function(e) {
@@ -1887,6 +1918,12 @@ async function loadFromSheets(cs) {
 
     // Restore general
     const gen = d.caracteristiques?.general || {};
+    veloType = gen.typeVelo || '';
+    document.querySelectorAll('#velo-type-btns .sgbtn').forEach(b => b.classList.remove('active'));
+    if (veloType) {
+      const vtbtn = document.querySelector(`#velo-type-btns .sgbtn[data-val="${veloType}"]`);
+      if (vtbtn) vtbtn.classList.add('active');
+    }
     setField('numeroCadre',  gen.numeroCadre || '');
     setField('marque',       gen.marque || '');
     setField('modele',       gen.modele || '');
@@ -1936,12 +1973,31 @@ async function loadFromSheets(cs) {
     setFieldSmart('fourche',              mec.fourche || '');
     setFieldSmart('bequille',             mec.bequille || '');
 
+    // Appliquer le verrouillage visuel des champs électriques si vélo mécanique
+    // (sans écraser les valeurs déjà restaurées depuis le Sheets)
+    if (veloType === 'MECANIQUE') {
+      document.querySelectorAll('[data-mecanique-na="true"]').forEach(field => {
+        const input = field.querySelector('input, select');
+        if (!input) return;
+        input.disabled = true;
+        input.title = 'Non applicable aux vélos mécaniques';
+        field.title = 'Non applicable aux vélos mécaniques';
+      });
+      const kmField = document.getElementById('field-kilometrage');
+      const kmInput = document.getElementById('kilometrage');
+      if (kmField && kmInput) {
+        kmInput.disabled = true;
+        kmInput.title = 'Non applicable aux vélos mécaniques';
+        kmField.title = 'Non applicable aux vélos mécaniques';
+      }
+    }
+
     // Restore inspection
     Object.keys(inspValues).forEach(k => delete inspValues[k]);
     Object.assign(inspValues, d.inspection || {});
 
     buildInspection('insp-mec',  INSPECTION_POINTS.slice(0, 23));
-    buildInspection('insp-elec', INSPECTION_POINTS.slice(23));
+    buildInspection('insp-elec', INSPECTION_POINTS.slice(23), 24);
 
     Object.entries(inspValues).forEach(([id, val]) => {
       if (val.statut) {
@@ -1971,24 +2027,13 @@ async function loadFromSheets(cs) {
     // Notes
     setField('notes', d.notes || '');
 
-    // Also save to local drafts for offline continuity
-    autoSave();
-
     // Show success toast
     showToast(`✓ Fiche CS-${cs} chargée depuis le Sheets`);
     goToStep(6, true); // Aller directement au récapitulatif sans validation
 
   } catch (err) {
     overlay.classList.remove('visible');
-    // Fallback: try localStorage
-    const drafts = getDrafts();
-    const draft = drafts.find(d => d.objetCS === cs);
-    if (draft) {
-      showToast(`⚠ Sheets inaccessible — fiche locale chargée`);
-      loadDraft(draft);
-    } else {
-      showToast(`✗ Impossible de charger CS-${cs} : ${err.message}`, true);
-    }
+    showToast(`✗ Impossible de charger CS-${cs} : ${err.message}`, true);
   }
 }
 
@@ -2037,39 +2082,10 @@ function showToast(msg, isError = false) {
 }
 
 
-// Smart open: local if available, Sheets otherwise
+// Ouvre toujours une fiche en direct depuis le Sheets — source de vérité unique
 async function openDraft(info) {
   toggleDraftsPanel();
-  const { objetCS, remote } = info;
-
-  // Si la fiche existe déjà dans le Sheets, c'est la source de vérité —
-  // on recharge toujours depuis Sheets pour avoir les données les plus à jour
-  // (le vélo peut avoir été modifié par quelqu'un d'autre depuis).
-  if (remote) {
-    await loadFromSheets(objetCS);
-    return;
-  }
-
-  // Sinon, c'est un brouillon jamais encore soumis — on continue localement
-  const drafts = getDrafts();
-  const local = drafts.find(d => d.objetCS === objetCS && d.state);
-  if (local) {
-    loadDraft(local);
-  } else {
-    await loadFromSheets(objetCS);
-  }
-}
-
-async function silentRefreshFromSheets(cs) {
-  try {
-    const url = `${APPS_SCRIPT_URL}?action=get&cs=${encodeURIComponent(cs)}`;
-    const resp = await fetch(url);
-    const result = await resp.json();
-    if (result.success) {
-      // Silently update local draft with Sheets data
-      // (don't disturb UI, just keep drafts in sync)
-    }
-  } catch(e) {}
+  await loadFromSheets(info.objetCS);
 }
 
 // ── URL PARAM STARTUP ─────────────────────────────────────────
