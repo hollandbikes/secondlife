@@ -892,11 +892,80 @@ button.pc-check { cursor: pointer; }
 .pc-links a.btn { text-decoration: none; }
 .pc-title-plain { border: none !important; padding: 0 !important; margin: 0 !important; }
 @media (max-width: 640px) {
-  #btn-bike .btn-lbl, .header-center { display: none; }
+  #btn-bike .btn-lbl, #btn-board .btn-lbl, .header-center { display: none; }
   .header-logo img { height: 32px; }
   .header-right .btn-drafts, .header-right .btn-sheets { font-size: 0; gap: 4px; padding: 9px 11px; }
   .header-right .draft-count { font-size: 10px; }
   .pc-item .pc-src { order: 3; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   VÉLOS PAR ÉTAPE (liste filtrable)
+   ══════════════════════════════════════════════════════════ */
+#bikes-view { display: none; }
+body.bikes-mode #bikes-view { display: block; }
+body.bikes-mode .step-section,
+body.bikes-mode #stepper,
+body.bikes-mode .progress-bar-wrap,
+body.bikes-mode #parcours-view { display: none !important; }
+
+.bv-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.bv-head .section-title { margin-bottom: 0; }
+.bv-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.bv-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 14px; min-height: 40px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--white);
+  font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--ink-soft);
+  cursor: pointer; transition: border-color 0.15s, background 0.15s;
+}
+.bv-chip:hover { border-color: var(--ink-soft); }
+.bv-chip.active { background: #00335b; border-color: #00335b; color: var(--white); }
+.bv-chip-count {
+  font-family: var(--mono); font-size: 11px; font-weight: 700;
+  padding: 1px 7px; border-radius: 999px; background: var(--surface); color: var(--ink-soft);
+}
+.bv-chip.active .bv-chip-count { background: rgba(255,255,255,0.18); color: var(--white); }
+.bv-search {
+  width: 100%; margin-bottom: 16px;
+  padding: 11px 14px; border-radius: var(--radius);
+  border: 1.5px solid var(--border); background: var(--white);
+  font-family: var(--sans); font-size: 14px; color: var(--ink);
+}
+.bv-search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,179,126,0.15); }
+.bv-list { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.bv-row {
+  width: 100%;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+  padding: 14px 18px;
+  background: var(--white); border: none; border-top: 1px solid var(--border);
+  font-family: var(--sans); text-align: left; cursor: pointer;
+  transition: background 0.12s;
+}
+.bv-row:first-child { border-top: none; }
+.bv-row:hover { background: var(--surface); }
+.bv-cs { font-family: var(--mono); font-weight: 700; font-size: 15px; color: #00335b; width: 64px; flex-shrink: 0; }
+.bv-main { flex: 1 1 220px; min-width: 0; }
+.bv-title { font-weight: 700; color: var(--ink); }
+.bv-meta { font-size: 12px; color: var(--ink-soft); }
+.bv-next { flex: 1 1 200px; min-width: 0; font-size: 13px; color: var(--ink-soft); }
+.bv-next strong { color: var(--ink); font-weight: 600; }
+.bv-tags { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.bv-ko { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: #fdecea; color: var(--warn); white-space: nowrap; }
+.bv-chev { color: var(--na); font-size: 18px; flex-shrink: 0; }
+.bv-empty { padding: 32px 18px; text-align: center; color: var(--ink-soft); font-size: 14px; }
+.bv-loading { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 40px; color: var(--ink-soft); }
+.bv-loading .submit-spinner { width: 28px; height: 28px; border-color: var(--border); border-top-color: var(--accent); }
+.pc-back { margin-bottom: 12px; }
+@media (min-width: 641px) {
+  .bv-row { display: grid; grid-template-columns: 64px minmax(0, 1.2fr) minmax(0, 1fr) 240px 14px; }
+  .bv-tags { justify-content: flex-end; }
+}
+@media (max-width: 640px) {
+  .bv-cs { width: auto; }
+  .bv-chev { display: none; }
 }
 </style>
 </head>
@@ -916,7 +985,7 @@ button.pc-check { cursor: pointer; }
     <button id="gate-go" class="cs-gate-go" onclick="submitGate()">Continuer →</button>
     <div id="gate-msg" class="cs-gate-msg" aria-live="polite"></div>
     <div class="cs-gate-links">
-      <button onclick="gateShowFiches()">Voir toutes les fiches</button>
+      <button onclick="openBoard()">Vélos par étape</button>
       <button onclick="closeGate()">Fiche sans N° CS</button>
     </div>
   </div>
@@ -938,6 +1007,10 @@ button.pc-check { cursor: pointer; }
   </div>
   <div class="header-center" id="header-status">Nouvelle fiche</div>
   <div class="header-right">
+    <button class="btn-drafts" onclick="openBoard()" id="btn-board">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span class="btn-lbl">Vélos par étape</span>
+    </button>
     <button class="btn-drafts" onclick="openGate()" id="btn-bike">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.5" y2="16.5"/></svg>
       <span class="btn-lbl">Changer de vélo</span>
@@ -993,6 +1066,9 @@ button.pc-check { cursor: pointer; }
 
   <!-- PARCOURS DU VÉLO (rempli par renderParcours) -->
   <section id="parcours-view"></section>
+
+  <!-- VÉLOS PAR ÉTAPE (rempli par renderBoard) -->
+  <section id="bikes-view"></section>
 
   <!-- ══════════════════════════════════════════════════ -->
   <!-- ÉTAPE 0 — IDENTIFICATION                          -->
@@ -1808,7 +1884,7 @@ function applyFullBypassNA() {
 
 // ── NAVIGATION ──────────────────────────────────────────────
 function goToStep(n, skipValidation) {
-  document.body.classList.remove('parcours-mode');
+  document.body.classList.remove('parcours-mode', 'bikes-mode');
   // Validation étape 0
   if (!skipValidation && currentStep === 0 && n > 0) {
     const date = document.getElementById('date').value;
@@ -2035,6 +2111,7 @@ async function submitForm() {
         </div>`;
       banner.style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      boardStale = true;
       // Retour automatique au parcours du vélo (prochaine étape)
       setTimeout(() => { if (!document.body.classList.contains('parcours-mode')) { resetForm(); openParcours(cs); } }, 6000);
     } else {
@@ -2544,6 +2621,7 @@ async function submitGate() {
   if (!cs) { setGateMsg('Saisis le N° Objet CS du vélo.', true); return; }
   document.getElementById('gate-go').disabled = true;
   setGateMsg('Recherche du vélo ' + cs + '…');
+  parcoursFromBoard = false;
   const ok = await openParcours(cs, true);
   document.getElementById('gate-go').disabled = false;
   if (ok) closeGate();
@@ -2566,6 +2644,7 @@ async function openParcours(cs, fromGate) {
     if (!fromGate) showToast('Chargement du parcours ' + cs + '…');
     parcoursStatus = await fetchStatus(cs);
     renderParcours();
+    document.body.classList.remove('bikes-mode');
     document.body.classList.add('parcours-mode');
     document.getElementById('header-status').textContent = 'Parcours · ' + cs;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2595,6 +2674,7 @@ async function toggleParcoursStep(key) {
     const result = await resp.json();
     if (!result.success) throw new Error(result.error);
     parcoursStatus = result.status;
+    boardStale = true;
     showToast(newVal ? '✓ Étape validée' : 'Étape décochée');
   } catch (err) {
     p[key] = !newVal;                    // on annule
@@ -2670,6 +2750,7 @@ function renderParcours() {
   const etape = next ? PARCOURS_STAGES[next.stage].title : (s.horsParcours ? s.statutLabel : 'En ligne');
 
   let html = `
+    ${parcoursFromBoard ? `<button class="btn btn-secondary pc-back" onclick="openBoard()">← Vélos par étape</button>` : ''}
     <div class="section-eyebrow">Parcours du vélo</div>
     <h1 class="section-title">CS ${esc(s.cs)} · ${esc(title)}</h1>
 
@@ -2779,6 +2860,141 @@ function renderParcours() {
     </div>`;
 
   view.innerHTML = html;
+}
+
+
+// ══════════════════════════════════════════════════════════════
+//  VÉLOS PAR ÉTAPE — liste de tous les vélos, filtrée par étape
+//  Données : Apps Script ?action=bikes (v7)
+// ══════════════════════════════════════════════════════════════
+const ETAPES = {
+  reco:        { label: '1 · Reconditionnement', bg: '#fff3e0', fg: '#e65100' },
+  photos:      { label: '2 · Photos',            bg: '#e3f2fd', fg: '#1565c0' },
+  miseenligne: { label: '3 · Mise en ligne',     bg: '#ede7f6', fg: '#5e35b1' },
+  enligne:     { label: '✓ En ligne',            bg: '#e8f5f0', fg: '#008f63' },
+  hors:        { label: 'Hors parcours',         bg: '#f1f5f9', fg: '#4a4e5c' }
+};
+const BOARD_FILTERS = [
+  { key: 'todo',        label: 'À traiter',         match: b => ['reco', 'photos', 'miseenligne'].includes(b.etapeKey) },
+  { key: 'reco',        label: '1 · Reconditionnement', match: b => b.etapeKey === 'reco' },
+  { key: 'photos',      label: '2 · Photos',        match: b => b.etapeKey === 'photos' },
+  { key: 'miseenligne', label: '3 · Mise en ligne', match: b => b.etapeKey === 'miseenligne' },
+  { key: 'enligne',     label: 'En ligne',          match: b => b.etapeKey === 'enligne' },
+  { key: 'hors',        label: 'Hors parcours',     match: b => b.etapeKey === 'hors' },
+  { key: 'all',         label: 'Tous',              match: () => true }
+];
+
+let boardBikes = null;        // cache de la liste
+let boardStale = true;        // à recharger (après une coche, un enregistrement…)
+let boardFilter = 'todo';
+let boardQuery = '';
+let parcoursFromBoard = false;
+
+async function openBoard(filterKey) {
+  closeGate();
+  if (filterKey) boardFilter = filterKey;
+  document.body.classList.remove('parcours-mode');
+  document.body.classList.add('bikes-mode');
+  document.getElementById('header-status').textContent = 'Vélos par étape';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (boardStale || !boardBikes) {
+    renderBoard(true);
+    await loadBoard();
+  } else {
+    renderBoard();
+  }
+}
+
+async function loadBoard() {
+  try {
+    const resp = await fetch(`${APPS_SCRIPT_URL}?action=bikes`);
+    const result = await resp.json();
+    if (!result.success) throw new Error(result.error || 'Réponse invalide');
+    boardBikes = (result.bikes || []).sort((a, b) => (b.dateIso || '').localeCompare(a.dateIso || '') || String(b.cs).localeCompare(String(a.cs)));
+    boardStale = false;
+    renderBoard();
+  } catch (err) {
+    document.getElementById('bv-list').innerHTML =
+      `<div class="bv-empty" style="color:var(--warn);">✗ Impossible de charger les vélos (${esc(err.message)}).</div>`;
+  }
+}
+
+function setBoardFilter(key) { boardFilter = key; renderBoard(); }
+function setBoardQuery(q)    { boardQuery = q; renderBoardList(); }
+
+function openBikeFromBoard(cs) {
+  parcoursFromBoard = true;
+  openParcours(cs);
+}
+
+// Prochaine tâche d'un vélo de la liste (mêmes règles que le parcours)
+function boardNextLabel(b) {
+  if (b.etapeKey === 'hors') return b.statutLabel || 'Hors parcours';
+  if (b.etapeKey === 'enligne') return 'Rien à faire';
+  const pseudo = { exists: true, parcours: b.parcours || {}, photos: b.photos || {} };
+  const next = PARCOURS.find(x => !stepDone(pseudo, x.key));
+  return next ? next.label : 'Rien à faire';
+}
+
+function renderBoard(loading) {
+  const view = document.getElementById('bikes-view');
+  const bikes = boardBikes || [];
+  const chips = BOARD_FILTERS.map(f => {
+    const n = bikes.filter(f.match).length;
+    return `<button class="bv-chip ${f.key === boardFilter ? 'active' : ''}" onclick="setBoardFilter('${f.key}')">
+      ${esc(f.label)} <span class="bv-chip-count">${boardBikes ? n : '…'}</span></button>`;
+  }).join('');
+
+  view.innerHTML = `
+    <div class="bv-head">
+      <div>
+        <div class="section-eyebrow">Second Life</div>
+        <h1 class="section-title">Vélos par étape</h1>
+      </div>
+      <button class="btn btn-secondary" onclick="boardStale=true;openBoard()">↻ Actualiser</button>
+    </div>
+    <div class="bv-filters" role="group" aria-label="Filtrer par étape">${chips}</div>
+    <input class="bv-search" type="search" placeholder="Rechercher un N° CS, une marque, un modèle, un technicien…"
+           value="${esc(boardQuery)}" oninput="setBoardQuery(this.value)" aria-label="Rechercher un vélo">
+    <div class="bv-list" id="bv-list">
+      ${loading ? '<div class="bv-loading"><div class="submit-spinner"></div>Chargement des vélos…</div>' : ''}
+    </div>`;
+  if (!loading) renderBoardList();
+}
+
+function renderBoardList() {
+  const list = document.getElementById('bv-list');
+  if (!list || !boardBikes) return;
+  const f = BOARD_FILTERS.find(x => x.key === boardFilter) || BOARD_FILTERS[0];
+  const q = boardQuery.trim().toLowerCase();
+  const rows = boardBikes
+    .filter(f.match)
+    .filter(b => !q || [b.cs, b.marque, b.modele, b.technicien, b.statutLabel].join(' ').toLowerCase().includes(q));
+
+  if (!rows.length) {
+    list.innerHTML = `<div class="bv-empty">Aucun vélo ${q ? 'ne correspond à cette recherche' : 'à cette étape'}.</div>`;
+    return;
+  }
+  list.innerHTML = rows.map(b => {
+    const et = ETAPES[b.etapeKey] || ETAPES.hors;
+    const etLabel = b.etapeKey === 'hors' ? (b.statutLabel || et.label) : et.label;
+    const title = [b.marque, b.modele].filter(Boolean).join(' ') || 'Vélo sans marque';
+    const meta = [b.typeVelo, b.technicien, b.date].filter(Boolean).join(' · ');
+    return `
+      <button class="bv-row" onclick="openBikeFromBoard('${esc(b.cs)}')">
+        <span class="bv-cs">${esc(b.cs)}</span>
+        <span class="bv-main">
+          <span class="bv-title">${esc(title)}</span><br>
+          <span class="bv-meta">${esc(meta)}</span>
+        </span>
+        <span class="bv-next">À faire : <strong>${esc(boardNextLabel(b))}</strong></span>
+        <span class="bv-tags">
+          ${b.pasOk > 0 && b.etapeKey === 'reco' ? `<span class="bv-ko">${b.pasOk} PAS OK</span>` : ''}
+          <span class="pc-pill" style="background:${et.bg};color:${et.fg};">${esc(etLabel)}</span>
+        </span>
+        <span class="bv-chev" aria-hidden="true">›</span>
+      </button>`;
+  }).join('');
 }
 
 // ── URL PARAM STARTUP ─────────────────────────────────────────
