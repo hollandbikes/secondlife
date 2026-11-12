@@ -665,11 +665,263 @@ textarea { resize: vertical; min-height: 80px; }
 .score-badge.ok-badge   { background: #e8f5f0; color: var(--ok); }
 .score-badge.ko-badge   { background: #fdecea; color: var(--warn); }
 .score-badge.na-badge   { background: #f1f5f9; color: var(--na); }
+
+/* ══════════════════════════════════════════════════════════
+   ACCUEIL — saisie du N° CS (verre dépoli, style « liquid glass »)
+   ══════════════════════════════════════════════════════════ */
+#cs-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 51, 91, 0.10);
+}
+#cs-gate.visible { display: flex; animation: gateFade 0.25s ease-out; }
+@keyframes gateFade { from { opacity: 0; } to { opacity: 1; } }
+
+.cs-gate-card {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  padding: 34px 30px 26px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.86);         /* sans flou (navigateurs anciens) */
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 24px 70px rgba(0, 51, 91, 0.22),
+    0 2px 6px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+  animation: gateRise 0.35s cubic-bezier(.2,.9,.3,1.15);
+}
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .cs-gate-card {
+    background: rgba(255, 255, 255, 0.38);
+    -webkit-backdrop-filter: blur(24px) saturate(185%);
+    backdrop-filter: blur(24px) saturate(185%);
+  }
+}
+/* reflet en haut de la carte */
+.cs-gate-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 55%;
+  background: linear-gradient(180deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
+}
+.cs-gate-card > * { position: relative; }
+@keyframes gateRise { from { transform: translateY(14px) scale(0.98); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.cs-gate-close {
+  position: absolute;
+  top: 14px; right: 14px;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.7);
+  background: rgba(255,255,255,0.45);
+  color: var(--ink-soft);
+  font-size: 20px; line-height: 1;
+  cursor: pointer;
+}
+.cs-gate-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-dk);
+  margin-bottom: 6px;
+}
+.cs-gate-title { font-size: 28px; font-weight: 700; color: #00335b; line-height: 1.15; }
+.cs-gate-sub   { font-size: 14px; color: var(--ink-soft); margin: 6px 0 20px; }
+.cs-gate-input {
+  width: 100%;
+  font-family: var(--mono);
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: center;
+  color: #00335b;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1.5px solid rgba(0, 51, 91, 0.18);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.cs-gate-input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(0,179,126,0.18); }
+.cs-gate-go {
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  background: var(--accent);
+  color: var(--white);
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.cs-gate-go:hover { background: var(--accent-dk); }
+.cs-gate-go:disabled { opacity: 0.6; cursor: wait; }
+.cs-gate-msg { min-height: 20px; margin-top: 10px; font-size: 13px; text-align: center; color: var(--ink-soft); }
+.cs-gate-msg.error { color: var(--warn); font-weight: 600; }
+.cs-gate-links {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 8px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0, 51, 91, 0.10);
+}
+.cs-gate-links button {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--sans); font-size: 13px; font-weight: 600; color: #00335b;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   PARCOURS DU VÉLO
+   ══════════════════════════════════════════════════════════ */
+#parcours-view { display: none; }
+body.parcours-mode #parcours-view { display: block; }
+body.parcours-mode .step-section,
+body.parcours-mode #stepper,
+body.parcours-mode .progress-bar-wrap { display: none !important; }
+
+.pc-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.pc-pill {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.pc-meta { font-size: 13px; color: var(--ink-soft); margin-top: 4px; }
+.pc-progress { height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; margin-top: 14px; }
+.pc-progress > div { height: 100%; background: var(--accent); border-radius: 999px; transition: width 0.3s; }
+
+.pc-next {
+  margin-top: 16px;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: #00335b;
+  color: var(--white);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.pc-next-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #7ee2c0; }
+.pc-next-label { font-size: 18px; font-weight: 700; }
+.pc-next-help  { font-size: 13px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+.pc-next .btn { flex-shrink: 0; }
+.pc-done {
+  margin-top: 16px; padding: 14px 18px; border-radius: var(--radius);
+  background: #e8f5f0; color: var(--accent-dk); font-weight: 700;
+}
+.pc-info {
+  margin-top: 16px; padding: 12px 16px; border-radius: var(--radius);
+  background: #e3f2fd; color: #1565c0; font-size: 13px; font-weight: 600;
+}
+
+.pc-stage.current { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,179,126,0.12); }
+.pc-stage.done    { opacity: 0.85; }
+.pc-stage-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.pc-stage-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--border); color: var(--ink-soft);
+  font-family: var(--mono); font-size: 12px; font-weight: 700; margin-right: 8px;
+}
+.pc-stage.current .pc-stage-num { background: var(--accent); color: var(--white); }
+.pc-stage.done .pc-stage-num    { background: var(--accent-dk); color: var(--white); }
+
+.pc-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+.pc-item:first-of-type { border-top: none; }
+.pc-check {
+  width: 26px; height: 26px; flex-shrink: 0;
+  border-radius: 7px;
+  border: 2px solid var(--na);
+  background: var(--white);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--white); font-size: 15px; font-weight: 700;
+}
+button.pc-check { cursor: pointer; }
+.pc-check.on { background: var(--accent); border-color: var(--accent); }
+.pc-item-body { flex: 1 1 200px; min-width: 0; }
+.pc-item-label { font-weight: 600; }
+.pc-item.is-done .pc-item-label { color: var(--ink-soft); }
+.pc-item-detail { font-size: 12px; color: var(--ink-soft); }
+.pc-src {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: #f1f5f9;
+  color: var(--ink-soft);
+}
+.pc-src.auto { background: #e3f2fd; color: #1565c0; }
+.pc-item .btn { padding: 8px 14px; font-size: 13px; }
+
+.pc-specs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px 18px; }
+.pc-spec-k { font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; }
+.pc-spec-v { font-weight: 600; }
+.pc-ko { margin-top: 14px; padding: 12px 14px; border-radius: var(--radius); background: #fdecea; color: var(--warn); font-size: 13px; }
+.pc-ko ul { margin: 6px 0 0 18px; }
+.pc-notes { margin-top: 12px; padding: 12px 14px; border-radius: var(--radius); background: var(--surface); font-size: 13px; white-space: pre-line; }
+.pc-links { display: flex; flex-wrap: wrap; gap: 10px; }
+.pc-links a.btn { text-decoration: none; }
+.pc-title-plain { border: none !important; padding: 0 !important; margin: 0 !important; }
+@media (max-width: 640px) {
+  #btn-bike .btn-lbl, .header-center { display: none; }
+  .header-logo img { height: 32px; }
+  .header-right .btn-drafts, .header-right .btn-sheets { font-size: 0; gap: 4px; padding: 9px 11px; }
+  .header-right .draft-count { font-size: 10px; }
+  .pc-item .pc-src { order: 3; }
+}
 </style>
 </head>
 <body>
 
 <!-- ── SUBMIT OVERLAY ─────────────────────────────────── -->
+<!-- ── ACCUEIL : N° CS (verre dépoli) ───────────────── -->
+<div id="cs-gate" role="dialog" aria-modal="true" aria-labelledby="gate-title">
+  <div class="cs-gate-card">
+    <button class="cs-gate-close" onclick="closeGate()" aria-label="Fermer">×</button>
+    <div class="cs-gate-eyebrow">Second Life · EBSC</div>
+    <div class="cs-gate-title" id="gate-title">Quel vélo ?</div>
+    <div class="cs-gate-sub">Saisis le N° Objet CS pour voir où en est le vélo et ce qu'il reste à faire.</div>
+    <label for="gate-cs" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">N° Objet CS</label>
+    <input id="gate-cs" class="cs-gate-input" inputmode="numeric" autocomplete="off" placeholder="N° CS"
+           onkeydown="if(event.key==='Enter'){event.preventDefault();submitGate();}">
+    <button id="gate-go" class="cs-gate-go" onclick="submitGate()">Continuer →</button>
+    <div id="gate-msg" class="cs-gate-msg" aria-live="polite"></div>
+    <div class="cs-gate-links">
+      <button onclick="gateShowFiches()">Voir toutes les fiches</button>
+      <button onclick="closeGate()">Fiche sans N° CS</button>
+    </div>
+  </div>
+</div>
+
 <div id="submit-overlay">
   <div class="submit-spinner"></div>
   <div class="submit-msg">Enregistrement en cours…</div>
@@ -686,6 +938,10 @@ textarea { resize: vertical; min-height: 80px; }
   </div>
   <div class="header-center" id="header-status">Nouvelle fiche</div>
   <div class="header-right">
+    <button class="btn-drafts" onclick="openGate()" id="btn-bike">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.5" y2="16.5"/></svg>
+      <span class="btn-lbl">Changer de vélo</span>
+    </button>
     <button class="btn-drafts" onclick="toggleDraftsPanel()" id="btn-drafts">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
       Mes fiches <span class="draft-count" id="draft-count">0</span>
@@ -734,6 +990,9 @@ textarea { resize: vertical; min-height: 80px; }
 
   <div id="success-banner"></div>
   <div id="error-banner"></div>
+
+  <!-- PARCOURS DU VÉLO (rempli par renderParcours) -->
+  <section id="parcours-view"></section>
 
   <!-- ══════════════════════════════════════════════════ -->
   <!-- ÉTAPE 0 — IDENTIFICATION                          -->
@@ -1549,6 +1808,7 @@ function applyFullBypassNA() {
 
 // ── NAVIGATION ──────────────────────────────────────────────
 function goToStep(n, skipValidation) {
+  document.body.classList.remove('parcours-mode');
   // Validation étape 0
   if (!skipValidation && currentStep === 0 && n > 0) {
     const date = document.getElementById('date').value;
@@ -1769,12 +2029,14 @@ async function submitForm() {
       const editUrl = WEBAPP_URL + '?cs=' + encodeURIComponent(cs);
       banner.innerHTML = `✓ Fiche <strong>${expectedSheet}</strong> enregistrée dans Google Sheets !
         <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+          <a href="#" onclick="event.preventDefault();resetForm();openParcours('${cs}');" style="color:white;text-decoration:underline;font-size:13px;font-weight:700;">→ Voir le parcours du vélo</a>
           <a href="${editUrl}" style="color:white;text-decoration:underline;font-size:13px;">✏ Modifier cette fiche</a>
           <a href="https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit" target="_blank" style="color:white;text-decoration:underline;font-size:13px;">📊 Voir le Sheets →</a>
         </div>`;
       banner.style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      setTimeout(() => resetForm(), 9000);
+      // Retour automatique au parcours du vélo (prochaine étape)
+      setTimeout(() => { if (!document.body.classList.contains('parcours-mode')) { resetForm(); openParcours(cs); } }, 6000);
     } else {
       const banner = document.getElementById('success-banner');
       banner.innerHTML = "✓ Données envoyées — vérifie que l'onglet <strong>" + expectedSheet + "</strong> est apparu dans le <a href='https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit' target='_blank' style='color:white;text-decoration:underline;'>Sheets</a>.";
@@ -2209,6 +2471,316 @@ async function openDraft(info) {
   await loadFromSheets(info.objetCS);
 }
 
+
+// ══════════════════════════════════════════════════════════════
+//  PARCOURS DU VÉLO — accueil N° CS + suivi jusqu'à la mise en ligne
+//  Données : Apps Script ?action=status / ?action=setStep (v6)
+// ══════════════════════════════════════════════════════════════
+
+// Étapes, dans l'ordre. src : 'auto' = détecté, 'manuel' = case à cocher.
+const PARCOURS = [
+  { stage: 0, key: 'fiche',   src: 'auto',   label: "Fiche d'inspection remplie",
+    help: "Le formulaire d'inspection 53 points, pré-rempli avec le N° CS." },
+  { stage: 0, key: 'travaux', src: 'manuel', label: 'Travaux et pièces terminés',
+    help: "Les points PAS OK sont réparés et les pièces commandées sont montées." },
+  { stage: 1, key: 'photos',  src: 'auto',   label: 'Photos prises et envoyées',
+    help: "Détecté automatiquement dès que le dossier Drive « A mettre en ligne / N° CS » contient des photos." },
+  { stage: 2, key: 'desc',    src: 'manuel', label: 'Description FR / EN rédigée',
+    help: "Texte de l'annonce, en français et en anglais." },
+  { stage: 2, key: 'prix',    src: 'manuel', label: 'Prix de vente fixé',
+    help: 'Prix de revente validé pour ce vélo.' },
+  { stage: 2, key: 'publie',  src: 'manuel', label: 'Publié en ligne',
+    help: "Annonce publiée sur le site et occasion passée dans CS." }
+];
+const PARCOURS_STAGES = [
+  { title: 'Inspection & reconditionnement', sub: 'Fiche 53 points, réparations' },
+  { title: 'Photos',                          sub: 'Shooting et dossier Drive' },
+  { title: 'Fiche produit & mise en ligne',   sub: 'Description, prix, publication' }
+];
+
+// Outils intégrés : un outil par étape, ouvert depuis le parcours.
+// Pour brancher un outil : PARCOURS_TOOLS.desc = { label: 'Générer la description', open: (s) => { … } };
+const PARCOURS_TOOLS = {};
+
+const STATUT_PILL = {
+  PRET:             ['#e8f5e9', '#2e7d32'],
+  FACILE_RECO:      ['#fff3e0', '#e65100'],
+  RECONDITIONNABLE: ['#fffde7', '#a07800'],
+  UPWAY:            ['#e3f2fd', '#1565c0'],
+  M2IE:             ['#ffebee', '#c62828'],
+  POUR_PIECES:      ['#eeeeee', '#212121'],
+  RECO_INVERSION:   ['#f5f5f5', '#616161']
+};
+
+let parcoursStatus = null;   // dernier statut reçu du Sheets
+let parcoursBusy = false;
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ── Accueil (verre dépoli) ───────────────────────────────────
+function openGate(msg) {
+  const gate = document.getElementById('cs-gate');
+  const input = document.getElementById('gate-cs');
+  input.value = '';
+  setGateMsg(msg || '');
+  document.getElementById('gate-go').disabled = false;
+  gate.classList.add('visible');
+  setTimeout(() => input.focus(), 60);
+}
+function closeGate() {
+  document.getElementById('cs-gate').classList.remove('visible');
+}
+function setGateMsg(msg, isError) {
+  const el = document.getElementById('gate-msg');
+  el.textContent = msg;
+  el.classList.toggle('error', !!isError);
+}
+async function submitGate() {
+  const cs = document.getElementById('gate-cs').value.trim();
+  if (!cs) { setGateMsg('Saisis le N° Objet CS du vélo.', true); return; }
+  document.getElementById('gate-go').disabled = true;
+  setGateMsg('Recherche du vélo ' + cs + '…');
+  const ok = await openParcours(cs, true);
+  document.getElementById('gate-go').disabled = false;
+  if (ok) closeGate();
+}
+function gateShowFiches() {
+  closeGate();
+  toggleDraftsPanel();
+}
+
+// ── Chargement du statut ─────────────────────────────────────
+async function fetchStatus(cs) {
+  const resp = await fetch(`${APPS_SCRIPT_URL}?action=status&cs=${encodeURIComponent(cs)}`);
+  const result = await resp.json();
+  if (!result.success) throw new Error(result.error || 'Réponse invalide');
+  return result.status;
+}
+
+async function openParcours(cs, fromGate) {
+  try {
+    if (!fromGate) showToast('Chargement du parcours ' + cs + '…');
+    parcoursStatus = await fetchStatus(cs);
+    renderParcours();
+    document.body.classList.add('parcours-mode');
+    document.getElementById('header-status').textContent = 'Parcours · ' + cs;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return true;
+  } catch (err) {
+    const msg = "Impossible de joindre le Sheets (" + err.message + "). Réessaie dans un instant.";
+    if (fromGate) setGateMsg(msg, true); else showToast(msg, true);
+    return false;
+  }
+}
+
+async function refreshParcours() {
+  if (parcoursStatus) await openParcours(parcoursStatus.cs);
+}
+
+// Coche / décoche une étape manuelle
+async function toggleParcoursStep(key) {
+  if (parcoursBusy || !parcoursStatus || !parcoursStatus.exists) return;
+  const p = parcoursStatus.parcours || {};
+  const newVal = !p[key];
+  parcoursBusy = true;
+  p[key] = newVal;                       // affichage immédiat
+  renderParcours();
+  try {
+    const url = `${APPS_SCRIPT_URL}?action=setStep&cs=${encodeURIComponent(parcoursStatus.cs)}&key=${key}&value=${newVal ? 1 : 0}`;
+    const resp = await fetch(url);
+    const result = await resp.json();
+    if (!result.success) throw new Error(result.error);
+    parcoursStatus = result.status;
+    showToast(newVal ? '✓ Étape validée' : 'Étape décochée');
+  } catch (err) {
+    p[key] = !newVal;                    // on annule
+    showToast("✗ Non enregistré : " + err.message, true);
+  }
+  parcoursBusy = false;
+  renderParcours();
+}
+
+// ── Actions ──────────────────────────────────────────────────
+function startInspection(cs) {
+  resetForm();
+  document.getElementById('date').valueAsDate = new Date();
+  setField('objetCS', cs);
+  goToStep(0, true);
+  showToast('Nouvelle fiche pour le vélo ' + cs);
+}
+function editInspection(cs) {
+  document.body.classList.remove('parcours-mode');
+  loadFromSheets(cs);
+}
+function runParcoursAction(key) {
+  const s = parcoursStatus;
+  if (!s) return;
+  if (key === 'fiche')  return s.exists ? editInspection(s.cs) : startInspection(s.cs);
+  if (PARCOURS_TOOLS[key]) return PARCOURS_TOOLS[key].open(s);
+  if (key === 'photos') {
+    if (s.photos && s.photos.url) window.open(s.photos.url, '_blank');
+    else refreshParcours();
+    return;
+  }
+  toggleParcoursStep(key);
+}
+
+// ── Calcul de l'avancement ───────────────────────────────────
+function stepDone(s, key) {
+  if (key === 'fiche')  return !!s.exists;
+  if (key === 'photos') return !!(s.photos && s.photos.found && s.photos.count > 0);
+  return !!(s.parcours && s.parcours[key]);
+}
+function stepDetail(s, step, done) {
+  const p = s.parcours || {};
+  if (step.key === 'fiche')
+    return done ? `${s.date || '—'} · ${s.technicien || '—'} · ${s.statutLabel || 'statut non renseigné'}` : 'Pas encore de fiche pour ce numéro';
+  if (step.key === 'photos') {
+    if (!s.photos || !s.photos.found) return `Aucun dossier « ${s.cs} » dans le Drive`;
+    return s.photos.count > 0 ? `${s.photos.count} photo${s.photos.count > 1 ? 's' : ''} dans le dossier Drive` : 'Dossier Drive trouvé, mais vide';
+  }
+  return done ? ('Fait' + (p[step.key + 'At'] ? ' le ' + p[step.key + 'At'] : '')) : 'À faire';
+}
+function actionLabel(s, step, done) {
+  if (step.key === 'fiche')  return s.exists ? 'Modifier la fiche' : "Démarrer l'inspection";
+  if (PARCOURS_TOOLS[step.key]) return PARCOURS_TOOLS[step.key].label;
+  if (step.key === 'photos') return (s.photos && s.photos.url) ? 'Ouvrir le dossier' : 'Actualiser';
+  return done ? 'Décocher' : 'Marquer fait';
+}
+
+// ── Affichage ────────────────────────────────────────────────
+function renderParcours() {
+  const s = parcoursStatus;
+  const view = document.getElementById('parcours-view');
+  if (!s) { view.innerHTML = ''; return; }
+
+  const steps = s.horsParcours ? PARCOURS.filter(x => x.stage === 0) : PARCOURS;
+  const doneFlags = steps.map(x => stepDone(s, x.key));
+  const firstTodoIdx = doneFlags.indexOf(false);
+  const next = firstTodoIdx >= 0 ? steps[firstTodoIdx] : null;
+  const doneCount = doneFlags.filter(Boolean).length;
+  const pct = Math.round(doneCount / steps.length * 100);
+
+  const title = s.exists ? [s.marque, s.modele].filter(Boolean).join(' ') || 'Vélo sans marque' : 'Vélo inconnu';
+  const pill = STATUT_PILL[s.statutCode] || ['#f1f5f9', '#4a4e5c'];
+  const etape = next ? PARCOURS_STAGES[next.stage].title : (s.horsParcours ? s.statutLabel : 'En ligne');
+
+  let html = `
+    <div class="section-eyebrow">Parcours du vélo</div>
+    <h1 class="section-title">CS ${esc(s.cs)} · ${esc(title)}</h1>
+
+    <div class="card">
+      <div class="pc-head">
+        <div>
+          <div class="card-title pc-title-plain" style="margin-bottom:4px !important;">Étape actuelle : ${esc(etape)}</div>
+          <div class="pc-meta">${s.exists
+            ? `Inspecté le ${esc(s.date || '—')} par ${esc(s.technicien || '—')}${s.typeVelo ? ' · ' + esc(s.typeVelo) : ''}`
+            : "Aucune fiche d'inspection trouvée pour ce numéro."}</div>
+        </div>
+        ${s.statutLabel ? `<span class="pc-pill" style="background:${pill[0]};color:${pill[1]};">${esc(s.statutLabel)}</span>` : ''}
+      </div>
+      <div class="pc-progress"><div style="width:${pct}%"></div></div>
+      <div class="pc-meta">${doneCount} / ${steps.length} étapes faites</div>
+      ${next ? `
+        <div class="pc-next">
+          <div style="flex:1 1 260px;min-width:0;">
+            <div class="pc-next-eyebrow">Prochaine étape · ${esc(PARCOURS_STAGES[next.stage].title)}</div>
+            <div class="pc-next-label">${esc(next.label)}</div>
+            <div class="pc-next-help">${esc(next.help)}</div>
+          </div>
+          <button class="btn btn-primary" onclick="runParcoursAction('${next.key}')">${esc(actionLabel(s, next, false))} →</button>
+        </div>`
+      : s.horsParcours
+        ? `<div class="pc-info">Statut « ${esc(s.statutLabel)} » : ce vélo ne passe pas par la mise en ligne Second Life (photos, annonce).</div>`
+        : `<div class="pc-done">✓ Vélo en ligne — toutes les étapes sont faites.</div>`}
+    </div>`;
+
+  // Étapes
+  const stagesToShow = s.horsParcours ? [0] : [0, 1, 2];
+  stagesToShow.forEach(si => {
+    const stSteps = steps.filter(x => x.stage === si);
+    const allDone = stSteps.every(x => stepDone(s, x.key));
+    const isCurrent = next && next.stage === si;
+    const cls = allDone ? 'done' : (isCurrent ? 'current' : '');
+    const badge = allDone ? ['ok-badge', 'Fait'] : isCurrent ? ['', 'En cours'] : ['na-badge', 'À venir'];
+    html += `
+    <div class="card pc-stage ${cls}">
+      <div class="pc-stage-head">
+        <div class="card-title pc-title-plain"><span class="pc-stage-num">${si + 1}</span>${esc(PARCOURS_STAGES[si].title)}</div>
+        <span class="score-badge ${badge[0]}" style="${badge[0] ? '' : 'background:#e8f5f0;color:var(--accent-dk);'}">${badge[1]}</span>
+      </div>
+      <div style="margin-top:6px;">`;
+    stSteps.forEach(x => {
+      const done = stepDone(s, x.key);
+      const manual = x.src === 'manuel';
+      const canToggle = manual && s.exists && !PARCOURS_TOOLS[x.key];
+      const check = canToggle
+        ? `<button class="pc-check ${done ? 'on' : ''}" onclick="toggleParcoursStep('${x.key}')" aria-label="${done ? 'Décocher' : 'Cocher'} : ${esc(x.label)}">${done ? '✓' : ''}</button>`
+        : `<span class="pc-check ${done ? 'on' : ''}" aria-hidden="true">${done ? '✓' : ''}</span>`;
+      // bouton d'action : toujours pour fiche/photos/outils, pour les cases seulement si non faites
+      let action = '';
+      if (x.key === 'fiche' || x.key === 'photos' || PARCOURS_TOOLS[x.key]) {
+        const isNext = next && next.key === x.key;
+        action = `<button class="btn ${isNext ? 'btn-primary' : 'btn-secondary'}" onclick="runParcoursAction('${x.key}')">${esc(actionLabel(s, x, done))}</button>`;
+      } else if (canToggle && !done) {
+        action = `<button class="btn btn-secondary" onclick="toggleParcoursStep('${x.key}')">Marquer fait</button>`;
+      }
+      html += `
+        <div class="pc-item ${done ? 'is-done' : ''}">
+          ${check}
+          <div class="pc-item-body">
+            <div class="pc-item-label">${esc(x.label)}</div>
+            <div class="pc-item-detail">${esc(stepDetail(s, x, done))}</div>
+          </div>
+          <span class="pc-src ${x.src === 'auto' ? 'auto' : ''}">${x.src === 'auto' ? 'Auto' : 'À cocher'}</span>
+          ${action}
+        </div>`;
+    });
+    if (!s.exists && si > 0) {
+      html += `<div class="pc-meta" style="padding-top:8px;">Disponible une fois la fiche d'inspection enregistrée.</div>`;
+    }
+    html += `</div></div>`;
+  });
+
+  // Infos vélo
+  if (s.exists) {
+    const specs = [
+      ['Type', s.typeVelo], ['Marque', s.marque], ['Modèle', s.modele], ['Année', s.annee],
+      ['Km', s.km], ['Moteur', s.moteur], ['Batterie (Wh)', s.batterieWh]
+    ].filter(([, v]) => v && v !== 'NA' && v !== '—');
+    html += `
+    <div class="card">
+      <div class="card-title">Infos vélo</div>
+      <div class="pc-specs">
+        ${specs.map(([k, v]) => `<div><div class="pc-spec-k">${esc(k)}</div><div class="pc-spec-v">${esc(v)}</div></div>`).join('')}
+      </div>
+      ${s.pasOk && s.pasOk.length ? `
+        <div class="pc-ko"><strong>${s.pasOk.length} point${s.pasOk.length > 1 ? 's' : ''} PAS OK à l'inspection</strong>
+          <ul>${s.pasOk.map(l => `<li>${esc(l)}</li>`).join('')}</ul>
+        </div>` : ''}
+      ${s.notes ? `<div class="pc-notes">${esc(s.notes)}</div>` : ''}
+    </div>`;
+  }
+
+  // Liens
+  html += `
+    <div class="card">
+      <div class="card-title">Liens</div>
+      <div class="pc-links">
+        ${s.sheetsUrl ? `<a class="btn btn-secondary" href="${esc(s.sheetsUrl)}" target="_blank">📊 Fiche Sheets</a>` : ''}
+        ${s.photos && s.photos.url ? `<a class="btn btn-secondary" href="${esc(s.photos.url)}" target="_blank">📷 Dossier photos</a>` : ''}
+        <button class="btn btn-secondary" onclick="refreshParcours()">↻ Actualiser</button>
+        <button class="btn btn-secondary" onclick="openGate()">Changer de vélo</button>
+      </div>
+    </div>`;
+
+  view.innerHTML = html;
+}
+
 // ── URL PARAM STARTUP ─────────────────────────────────────────
 (async function checkUrlParam() {
   const params = new URLSearchParams(window.location.search);
@@ -2219,6 +2791,9 @@ async function openDraft(info) {
     await loadFromSheets(cs);
     // Clean URL without reload
     window.history.replaceState({}, '', window.location.pathname);
+  } else {
+    // Accueil : on demande d'abord le N° CS du vélo
+    openGate();
   }
 })();
 </script>
