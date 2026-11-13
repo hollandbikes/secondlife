@@ -959,6 +959,48 @@ body.bikes-mode #parcours-view { display: none !important; }
 .bv-loading { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 40px; color: var(--ink-soft); }
 .bv-loading .submit-spinner { width: 28px; height: 28px; border-color: var(--border); border-top-color: var(--accent); }
 .pc-back { margin-bottom: 12px; }
+/* ══════════════════════════════════════════════════════════
+   VÉLOS EN LIGNE (suivi turnover du site)
+   ══════════════════════════════════════════════════════════ */
+#online-view { display: none; }
+body.online-mode #online-view { display: block; }
+body.online-mode .step-section,
+body.online-mode #stepper,
+body.online-mode .progress-bar-wrap,
+body.online-mode #parcours-view,
+body.online-mode #bikes-view { display: none !important; }
+
+.ol-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.ol-kpi { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+.ol-kpi-v { font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+.ol-kpi-k { font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+.ol-kpi.orange .ol-kpi-v { color: #c25e00; }
+.ol-kpi.rouge  .ol-kpi-v { color: #c62828; }
+.ol-tools { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
+.ol-tools .bv-search { flex: 1 1 260px; margin-bottom: 0; }
+.ol-sort { flex: 0 1 auto; padding: 10px 12px; border-radius: var(--radius); border: 1.5px solid var(--border); background: var(--white); font-family: var(--sans); font-size: 13px; color: var(--ink); }
+.ol-row { cursor: pointer; }
+.ol-price { font-family: var(--mono); font-weight: 700; color: var(--ink); white-space: nowrap; }
+.ol-price s { color: var(--na); font-weight: 400; margin-left: 6px; font-size: 12px; }
+.ol-days { font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.ol-days.vert   { background: #e8f5f0; color: #008f63; }
+.ol-days.orange { background: #fff0e0; color: #c25e00; }
+.ol-days.rouge  { background: #fdecea; color: #c62828; }
+.ol-days.gris   { background: #f1f5f9; color: #4a4e5c; }
+.ol-tag { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: #f1f5f9; color: var(--ink-soft); white-space: nowrap; }
+.ol-tag.down { background: #e3f2fd; color: #1565c0; }
+.ol-legend { font-size: 12px; color: var(--ink-soft); margin: -4px 0 12px; }
+.ol-note { font-size: 12px; color: var(--ink-soft); margin-top: 10px; }
+.pc-sale { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 12px; }
+.pc-histo { margin-top: 12px; font-size: 13px; }
+.pc-histo table { width: 100%; border-collapse: collapse; }
+.pc-histo th, .pc-histo td { text-align: left; padding: 6px 8px; border-top: 1px solid var(--border); }
+.pc-histo th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--ink-soft); border-top: none; }
+@media (min-width: 641px) {
+  .bv-row.ol-row { display: grid; grid-template-columns: 110px minmax(0, 2fr) 150px 110px 150px 14px; }
+  .ol-row .bv-cs { width: auto; }
+}
+
 @media (min-width: 641px) {
   .bv-row { display: grid; grid-template-columns: 64px minmax(0, 1.2fr) minmax(0, 1fr) 240px 14px; }
   .bv-tags { justify-content: flex-end; }
@@ -986,6 +1028,7 @@ body.bikes-mode #parcours-view { display: none !important; }
     <div id="gate-msg" class="cs-gate-msg" aria-live="polite"></div>
     <div class="cs-gate-links">
       <button onclick="openBoard()">Vélos par étape</button>
+      <button onclick="openOnline()">Vélos en ligne</button>
       <button onclick="closeGate()">Fiche sans N° CS</button>
     </div>
   </div>
@@ -1010,6 +1053,10 @@ body.bikes-mode #parcours-view { display: none !important; }
     <button class="btn-drafts" onclick="openBoard()" id="btn-board">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
       <span class="btn-lbl">Vélos par étape</span>
+    </button>
+    <button class="btn-drafts" onclick="openOnline()" id="btn-online">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
+      <span class="btn-lbl">En ligne</span>
     </button>
     <button class="btn-drafts" onclick="openGate()" id="btn-bike">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.5" y2="16.5"/></svg>
@@ -1069,6 +1116,9 @@ body.bikes-mode #parcours-view { display: none !important; }
 
   <!-- VÉLOS PAR ÉTAPE (rempli par renderBoard) -->
   <section id="bikes-view"></section>
+
+  <!-- VÉLOS EN LIGNE (rempli par renderOnline) -->
+  <section id="online-view"></section>
 
   <!-- ══════════════════════════════════════════════════ -->
   <!-- ÉTAPE 0 — IDENTIFICATION                          -->
@@ -1884,7 +1934,7 @@ function applyFullBypassNA() {
 
 // ── NAVIGATION ──────────────────────────────────────────────
 function goToStep(n, skipValidation) {
-  document.body.classList.remove('parcours-mode', 'bikes-mode');
+  document.body.classList.remove('parcours-mode', 'bikes-mode', 'online-mode');
   // Validation étape 0
   if (!skipValidation && currentStep === 0 && n > 0) {
     const date = document.getElementById('date').value;
@@ -2567,12 +2617,15 @@ const PARCOURS = [
   { stage: 2, key: 'prix',    src: 'manuel', label: 'Prix de vente fixé',
     help: 'Prix de revente validé pour ce vélo.' },
   { stage: 2, key: 'publie',  src: 'manuel', label: 'Publié en ligne',
-    help: "Annonce publiée sur le site et occasion passée dans CS." }
+    help: "Annonce publiée sur le site et occasion passée dans CS. Coché automatiquement dès que le vélo apparaît sur le site." },
+  { stage: 3, key: 'vendu',   src: 'auto',   label: 'Vélo vendu',
+    help: "Détecté automatiquement quand le vélo disparaît du site (onglet « Velos vendus » du suivi). En attendant, surveille les jours en ligne et ajuste le prix." }
 ];
 const PARCOURS_STAGES = [
   { title: 'Inspection & reconditionnement', sub: 'Fiche 53 points, réparations' },
   { title: 'Photos',                          sub: 'Shooting et dossier Drive' },
-  { title: 'Fiche produit & mise en ligne',   sub: 'Description, prix, publication' }
+  { title: 'Fiche produit & mise en ligne',   sub: 'Description, prix, publication' },
+  { title: 'En vente',                        sub: 'Jours en ligne, prix, vente' }
 ];
 
 // Outils intégrés : un outil par étape, ouvert depuis le parcours.
@@ -2622,6 +2675,7 @@ async function submitGate() {
   document.getElementById('gate-go').disabled = true;
   setGateMsg('Recherche du vélo ' + cs + '…');
   parcoursFromBoard = false;
+  parcoursFromOnline = false;
   const ok = await openParcours(cs, true);
   document.getElementById('gate-go').disabled = false;
   if (ok) closeGate();
@@ -2644,7 +2698,7 @@ async function openParcours(cs, fromGate) {
     if (!fromGate) showToast('Chargement du parcours ' + cs + '…');
     parcoursStatus = await fetchStatus(cs);
     renderParcours();
-    document.body.classList.remove('bikes-mode');
+    document.body.classList.remove('bikes-mode', 'online-mode');
     document.body.classList.add('parcours-mode');
     document.getElementById('header-status').textContent = 'Parcours · ' + cs;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2706,12 +2760,14 @@ function runParcoursAction(key) {
     else refreshParcours();
     return;
   }
+  if (key === 'vendu') return openOnline();
   toggleParcoursStep(key);
 }
 
 // ── Calcul de l'avancement ───────────────────────────────────
 function stepDone(s, key) {
   if (key === 'fiche')  return !!s.exists;
+  if (key === 'vendu')  return !!s.vendu;
   if (key === 'photos') return !!(s.photos && s.photos.found && s.photos.count > 0);
   return !!(s.parcours && s.parcours[key]);
 }
@@ -2723,12 +2779,20 @@ function stepDetail(s, step, done) {
     if (!s.photos || !s.photos.found) return `Aucun dossier « ${s.cs} » dans le Drive`;
     return s.photos.count > 0 ? `${s.photos.count} photo${s.photos.count > 1 ? 's' : ''} dans le dossier Drive` : 'Dossier Drive trouvé, mais vide';
   }
+  if (step.key === 'publie' && p.publieAuto)
+    return 'Détecté sur le site' + (p.publieAt ? ' · en ligne depuis le ' + p.publieAt : '');
+  if (step.key === 'vendu') {
+    if (s.vendu) return 'Vendu le ' + (s.vendu.dateVente || '—') + (typeof s.vendu.jours === 'number' ? ' · ' + joursTxt(s.vendu.jours, s.vendu.approx) + ' en ligne' : '');
+    if (s.enLigne) return 'En ligne depuis ' + joursTxt(s.enLigne.jours, s.enLigne.approx) + ' · ' + prixTxt(s.enLigne.prix);
+    return "Pas encore visible sur le site";
+  }
   return done ? ('Fait' + (p[step.key + 'At'] ? ' le ' + p[step.key + 'At'] : '')) : 'À faire';
 }
 function actionLabel(s, step, done) {
   if (step.key === 'fiche')  return s.exists ? 'Modifier la fiche' : "Démarrer l'inspection";
   if (PARCOURS_TOOLS[step.key]) return PARCOURS_TOOLS[step.key].label;
   if (step.key === 'photos') return (s.photos && s.photos.url) ? 'Ouvrir le dossier' : 'Actualiser';
+  if (step.key === 'vendu')  return 'Voir les vélos en ligne';
   return done ? 'Décocher' : 'Marquer fait';
 }
 
@@ -2747,10 +2811,11 @@ function renderParcours() {
 
   const title = s.exists ? [s.marque, s.modele].filter(Boolean).join(' ') || 'Vélo sans marque' : 'Vélo inconnu';
   const pill = STATUT_PILL[s.statutCode] || ['#f1f5f9', '#4a4e5c'];
-  const etape = next ? PARCOURS_STAGES[next.stage].title : (s.horsParcours ? s.statutLabel : 'En ligne');
+  const etape = next ? PARCOURS_STAGES[next.stage].title : (s.horsParcours ? s.statutLabel : 'Vendu');
 
   let html = `
     ${parcoursFromBoard ? `<button class="btn btn-secondary pc-back" onclick="openBoard()">← Vélos par étape</button>` : ''}
+    ${parcoursFromOnline ? `<button class="btn btn-secondary pc-back" onclick="openOnline()">← Vélos en ligne</button>` : ''}
     <div class="section-eyebrow">Parcours du vélo</div>
     <h1 class="section-title">CS ${esc(s.cs)} · ${esc(title)}</h1>
 
@@ -2777,11 +2842,11 @@ function renderParcours() {
         </div>`
       : s.horsParcours
         ? `<div class="pc-info">Statut « ${esc(s.statutLabel)} » : ce vélo ne passe pas par la mise en ligne Second Life (photos, annonce).</div>`
-        : `<div class="pc-done">✓ Vélo en ligne — toutes les étapes sont faites.</div>`}
+        : `<div class="pc-done">✓ Vélo vendu${s.vendu && s.vendu.dateVente ? ' le ' + esc(s.vendu.dateVente) : ''} — parcours terminé.</div>`}
     </div>`;
 
   // Étapes
-  const stagesToShow = s.horsParcours ? [0] : [0, 1, 2];
+  const stagesToShow = s.horsParcours ? [0] : [0, 1, 2, 3];
   stagesToShow.forEach(si => {
     const stSteps = steps.filter(x => x.stage === si);
     const allDone = stSteps.every(x => stepDone(s, x.key));
@@ -2798,13 +2863,14 @@ function renderParcours() {
     stSteps.forEach(x => {
       const done = stepDone(s, x.key);
       const manual = x.src === 'manuel';
-      const canToggle = manual && s.exists && !PARCOURS_TOOLS[x.key];
+      const autoDetected = x.key === 'publie' && s.parcours && s.parcours.publieAuto;
+      const canToggle = manual && s.exists && !PARCOURS_TOOLS[x.key] && !autoDetected;
       const check = canToggle
         ? `<button class="pc-check ${done ? 'on' : ''}" onclick="toggleParcoursStep('${x.key}')" aria-label="${done ? 'Décocher' : 'Cocher'} : ${esc(x.label)}">${done ? '✓' : ''}</button>`
         : `<span class="pc-check ${done ? 'on' : ''}" aria-hidden="true">${done ? '✓' : ''}</span>`;
       // bouton d'action : toujours pour fiche/photos/outils, pour les cases seulement si non faites
       let action = '';
-      if (x.key === 'fiche' || x.key === 'photos' || PARCOURS_TOOLS[x.key]) {
+      if (x.key === 'fiche' || x.key === 'photos' || x.key === 'vendu' || PARCOURS_TOOLS[x.key]) {
         const isNext = next && next.key === x.key;
         action = `<button class="btn ${isNext ? 'btn-primary' : 'btn-secondary'}" onclick="runParcoursAction('${x.key}')">${esc(actionLabel(s, x, done))}</button>`;
       } else if (canToggle && !done) {
@@ -2817,11 +2883,12 @@ function renderParcours() {
             <div class="pc-item-label">${esc(x.label)}</div>
             <div class="pc-item-detail">${esc(stepDetail(s, x, done))}</div>
           </div>
-          <span class="pc-src ${x.src === 'auto' ? 'auto' : ''}">${x.src === 'auto' ? 'Auto' : 'À cocher'}</span>
+          <span class="pc-src ${x.src === 'auto' || autoDetected ? 'auto' : ''}">${x.src === 'auto' || autoDetected ? 'Auto' : 'À cocher'}</span>
           ${action}
         </div>`;
     });
-    if (!s.exists && si > 0) {
+    if (si === 3) html += saleBlock(s);
+    if (!s.exists && si > 0 && si < 3) {
       html += `<div class="pc-meta" style="padding-top:8px;">Disponible une fois la fiche d'inspection enregistrée.</div>`;
     }
     html += `</div></div>`;
@@ -2871,7 +2938,8 @@ const ETAPES = {
   reco:        { label: '1 · Reconditionnement', bg: '#fff3e0', fg: '#e65100' },
   photos:      { label: '2 · Photos',            bg: '#e3f2fd', fg: '#1565c0' },
   miseenligne: { label: '3 · Mise en ligne',     bg: '#ede7f6', fg: '#5e35b1' },
-  enligne:     { label: '✓ En ligne',            bg: '#e8f5f0', fg: '#008f63' },
+  enligne:     { label: '4 · En ligne',          bg: '#e8f5f0', fg: '#008f63' },
+  vendu:       { label: '✓ Vendu',               bg: '#eceff1', fg: '#37474f' },
   hors:        { label: 'Hors parcours',         bg: '#f1f5f9', fg: '#4a4e5c' }
 };
 const BOARD_FILTERS = [
@@ -2879,7 +2947,8 @@ const BOARD_FILTERS = [
   { key: 'reco',        label: '1 · Reconditionnement', match: b => b.etapeKey === 'reco' },
   { key: 'photos',      label: '2 · Photos',        match: b => b.etapeKey === 'photos' },
   { key: 'miseenligne', label: '3 · Mise en ligne', match: b => b.etapeKey === 'miseenligne' },
-  { key: 'enligne',     label: 'En ligne',          match: b => b.etapeKey === 'enligne' },
+  { key: 'enligne',     label: '4 · En ligne',      match: b => b.etapeKey === 'enligne' },
+  { key: 'vendu',       label: 'Vendus',            match: b => b.etapeKey === 'vendu' },
   { key: 'hors',        label: 'Hors parcours',     match: b => b.etapeKey === 'hors' },
   { key: 'all',         label: 'Tous',              match: () => true }
 ];
@@ -2889,11 +2958,12 @@ let boardStale = true;        // à recharger (après une coche, un enregistreme
 let boardFilter = 'todo';
 let boardQuery = '';
 let parcoursFromBoard = false;
+let parcoursFromOnline = false;
 
 async function openBoard(filterKey) {
   closeGate();
   if (filterKey) boardFilter = filterKey;
-  document.body.classList.remove('parcours-mode');
+  document.body.classList.remove('parcours-mode', 'online-mode');
   document.body.classList.add('bikes-mode');
   document.getElementById('header-status').textContent = 'Vélos par étape';
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2924,13 +2994,17 @@ function setBoardQuery(q)    { boardQuery = q; renderBoardList(); }
 
 function openBikeFromBoard(cs) {
   parcoursFromBoard = true;
+  parcoursFromOnline = false;
   openParcours(cs);
 }
 
 // Prochaine tâche d'un vélo de la liste (mêmes règles que le parcours)
 function boardNextLabel(b) {
   if (b.etapeKey === 'hors') return b.statutLabel || 'Hors parcours';
-  if (b.etapeKey === 'enligne') return 'Rien à faire';
+  if (b.etapeKey === 'vendu') return 'Rien à faire';
+  if (b.etapeKey === 'enligne') return b.enLigne
+    ? 'Suivre le prix · en ligne depuis ' + joursTxt(b.enLigne.jours, b.enLigne.approx)
+    : 'Attendre la vente';
   const pseudo = { exists: true, parcours: b.parcours || {}, photos: b.photos || {} };
   const next = PARCOURS.find(x => !stepDone(pseudo, x.key));
   return next ? next.label : 'Rien à faire';
@@ -2990,7 +3064,220 @@ function renderBoardList() {
         <span class="bv-next">À faire : <strong>${esc(boardNextLabel(b))}</strong></span>
         <span class="bv-tags">
           ${b.pasOk > 0 && b.etapeKey === 'reco' ? `<span class="bv-ko">${b.pasOk} PAS OK</span>` : ''}
+          ${b.enLigne ? `<span class="ol-days ${joursClass(b.enLigne.jours)}">${esc(joursTxt(b.enLigne.jours, b.enLigne.approx))}</span>` : ''}
           <span class="pc-pill" style="background:${et.bg};color:${et.fg};">${esc(etLabel)}</span>
+        </span>
+        <span class="bv-chev" aria-hidden="true">›</span>
+      </button>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════════
+//  VÉLOS EN LIGNE — suivi des vélos visibles sur le site Holland Bikes
+//  Données : Apps Script ?action=online (v9), lues dans le fichier
+//  « Suivi Turnover Vélos Reco » (alimenté par son propre script)
+//  Couleurs : vert < 45 j · orange 45 à 90 j · rouge > 90 j
+// ══════════════════════════════════════════════════════════════
+const JOURS_ORANGE = 45;
+const JOURS_ROUGE  = 90;   // rouge au-delà
+
+function joursClass(j) {
+  if (typeof j !== 'number') return 'gris';
+  if (j > JOURS_ROUGE) return 'rouge';
+  if (j >= JOURS_ORANGE) return 'orange';
+  return 'vert';
+}
+function joursTxt(j, approx) {
+  if (typeof j !== 'number') return 'durée inconnue';
+  return (approx ? '≥ ' : '') + j + ' j';
+}
+function prixTxt(v) {
+  if (typeof v !== 'number') return '—';
+  return v.toLocaleString('fr-FR', { minimumFractionDigits: v % 1 ? 2 : 0, maximumFractionDigits: 2 }) + ' €';
+}
+
+// Bloc « En vente » dans le parcours d'un vélo
+function saleBlock(s) {
+  const b = s.enLigne || s.vendu;
+  if (!b) return '';
+  const histo = b.histo || [];
+  const tiles = s.enLigne ? [
+    ['Prix actuel', prixTxt(s.enLigne.prix)],
+    ['En ligne depuis', s.enLigne.depuis || '—'],
+    ['Jours en ligne', `<span class="ol-days ${joursClass(s.enLigne.jours)}">${esc(joursTxt(s.enLigne.jours, s.enLigne.approx))}</span>`],
+    ['Prix de départ', prixTxt(s.enLigne.prixInitial)]
+  ] : [
+    ['Vendu le', s.vendu.dateVente || '—'],
+    ['En ligne depuis', s.vendu.depuis || 'inconnu'],
+    ['Jours pour vendre', esc(joursTxt(s.vendu.jours, s.vendu.approx))],
+    ['Dernier prix', prixTxt(s.vendu.dernierPrix)]
+  ];
+  return `
+    <div class="pc-sale">
+      ${tiles.map(([k, v]) => `<div><div class="pc-spec-k">${esc(k)}</div><div class="pc-spec-v">${k === 'Jours en ligne' ? v : esc(v)}</div></div>`).join('')}
+    </div>
+    ${s.enLigne && s.enLigne.approx ? `<div class="ol-note">≥ : date de mise en ligne retrouvée dans les archives du site, le vélo est peut-être en ligne depuis plus longtemps.</div>` : ''}
+    ${histo.length ? `
+      <div class="pc-histo">
+        <table>
+          <thead><tr><th>Date</th><th>Ancien prix</th><th>Nouveau prix</th></tr></thead>
+          <tbody>${histo.slice().reverse().map(h => `<tr><td>${esc(h.date)}</td><td>${esc(prixTxt(h.ancien))}</td><td><strong>${esc(prixTxt(h.nouveau))}</strong></td></tr>`).join('')}</tbody>
+        </table>
+      </div>` : `<div class="ol-note">Aucun changement de prix enregistré.</div>`}`;
+}
+
+const ONLINE_FILTERS = [
+  { key: 'all',    label: 'Tous en ligne', match: b => true },
+  { key: 'vert',   label: '< 45 j',        match: b => joursClass(b.jours) === 'vert' },
+  { key: 'orange', label: '45 à 90 j',     match: b => joursClass(b.jours) === 'orange' },
+  { key: 'rouge',  label: '> 90 j',        match: b => joursClass(b.jours) === 'rouge' },
+  { key: 'sold',   label: 'Vendus',        sold: true }
+];
+const ONLINE_SORTS = {
+  jours:  { label: 'Jours en ligne (plus ancien en haut)', fn: (a, b) => (b.jours ?? -1) - (a.jours ?? -1) },
+  baisse: { label: 'Sans baisse de prix depuis longtemps',  fn: (a, b) => sinceChange(b) - sinceChange(a) },
+  prixD:  { label: 'Prix (plus cher en haut)',             fn: (a, b) => (b.prix ?? 0) - (a.prix ?? 0) },
+  prixA:  { label: 'Prix (moins cher en haut)',            fn: (a, b) => (a.prix ?? 0) - (b.prix ?? 0) }
+};
+function sinceChange(b) {
+  return b.dernierChangement ? (b.dernierChangement.joursDepuis ?? 0) : (b.jours ?? 0);
+}
+
+let onlineData = null;
+let onlineFilter = 'all';
+let onlineQuery = '';
+let onlineSort = 'jours';
+
+async function openOnline(filterKey) {
+  closeGate();
+  if (filterKey) onlineFilter = filterKey;
+  document.body.classList.remove('parcours-mode', 'bikes-mode');
+  document.body.classList.add('online-mode');
+  document.getElementById('header-status').textContent = 'Vélos en ligne';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (!onlineData) {
+    renderOnline(true);
+    await loadOnline(false);
+  } else {
+    renderOnline();
+  }
+}
+
+async function loadOnline(fresh) {
+  try {
+    const resp = await fetch(`${APPS_SCRIPT_URL}?action=online${fresh ? '&fresh=1' : ''}`);
+    const result = await resp.json();
+    if (!result.success) throw new Error(result.error || 'Réponse invalide');
+    onlineData = result;
+    renderOnline();
+  } catch (err) {
+    const el = document.getElementById('ol-list');
+    if (el) el.innerHTML = `<div class="bv-empty" style="color:var(--warn);">✗ Impossible de charger les vélos en ligne (${esc(err.message)}).</div>`;
+  }
+}
+
+function setOnlineFilter(k) { onlineFilter = k; renderOnline(); }
+function setOnlineQuery(q)  { onlineQuery = q; renderOnlineList(); }
+function setOnlineSort(k)   { onlineSort = k; renderOnlineList(); }
+
+function openBikeFromOnline(cs) {
+  parcoursFromOnline = true;
+  parcoursFromBoard = false;
+  openParcours(cs);
+}
+
+function renderOnline(loading) {
+  const view = document.getElementById('online-view');
+  const d = onlineData;
+  const st = d ? d.stats : null;
+  const kpi = (v, k, cls, f) => `<button class="ol-kpi ${cls || ''}" style="text-align:left;cursor:pointer;font-family:inherit;" onclick="setOnlineFilter('${f}')"><div class="ol-kpi-v">${v}</div><div class="ol-kpi-k">${k}</div></button>`;
+  const chips = ONLINE_FILTERS.map(f => {
+    const n = !d ? '…' : f.sold ? d.sold.length : d.online.filter(f.match).length;
+    return `<button class="bv-chip ${f.key === onlineFilter ? 'active' : ''}" onclick="setOnlineFilter('${f.key}')">${esc(f.label)} <span class="bv-chip-count">${n}</span></button>`;
+  }).join('');
+
+  view.innerHTML = `
+    <div class="bv-head">
+      <div>
+        <div class="section-eyebrow">Site Holland Bikes Reconditionné</div>
+        <h1 class="section-title">Vélos en ligne</h1>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${d && d.sheetsUrl ? `<a class="btn btn-secondary" href="${esc(d.sheetsUrl)}" target="_blank">📊 Suivi Sheets</a>` : ''}
+        <button class="btn btn-secondary" onclick="onlineData=null;renderOnline(true);loadOnline(true)">↻ Actualiser</button>
+      </div>
+    </div>
+    ${st ? `
+    <div class="ol-kpis">
+      ${kpi(st.nbOnline, 'vélos en ligne', '', 'all')}
+      ${kpi(st.nbOrange, 'entre 45 et 90 jours', 'orange', 'orange')}
+      ${kpi(st.nbRouge, 'plus de 90 jours', 'rouge', 'rouge')}
+      ${kpi(st.delaiMoyenVente != null ? (st.delaiApprox ? '≥ ' : '') + st.delaiMoyenVente + ' j' : '—', `délai moyen de vente (${st.nbVendusAvecDelai} vente${st.nbVendusAvecDelai > 1 ? 's' : ''})`, '', 'sold')}
+      ${kpi(prixTxt(st.valeurEnLigne), 'valeur totale en ligne', '', 'all')}
+    </div>` : ''}
+    <div class="bv-filters" role="group" aria-label="Filtrer par ancienneté">${chips}</div>
+    <div class="ol-legend">Vert : moins de 45 jours · Orange : 45 à 90 jours · Rouge : plus de 90 jours, prix à revoir</div>
+    <div class="ol-tools">
+      <input class="bv-search" type="search" placeholder="Rechercher un N° CS ou un nom…" value="${esc(onlineQuery)}"
+             oninput="setOnlineQuery(this.value)" aria-label="Rechercher un vélo en ligne">
+      ${onlineFilter === 'sold' ? '' : `<select class="ol-sort" onchange="setOnlineSort(this.value)" aria-label="Trier">
+        ${Object.entries(ONLINE_SORTS).map(([k, o]) => `<option value="${k}" ${k === onlineSort ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}
+      </select>`}
+    </div>
+    <div class="bv-list" id="ol-list">
+      ${loading ? '<div class="bv-loading"><div class="submit-spinner"></div>Chargement des vélos en ligne…</div>' : ''}
+    </div>
+    ${d ? `<div class="ol-note">≥ : date de mise en ligne retrouvée dans les archives du site (le vélo est peut-être en ligne depuis plus longtemps). Données du suivi au ${esc(frDateIso(d.updatedAt))}, actualisées toutes les 10 min.</div>` : ''}`;
+  if (!loading) renderOnlineList();
+}
+
+function frDateIso(iso) {
+  const m = String(iso || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
+}
+
+function renderOnlineList() {
+  const list = document.getElementById('ol-list');
+  if (!list || !onlineData) return;
+  const q = onlineQuery.trim().toLowerCase();
+  const f = ONLINE_FILTERS.find(x => x.key === onlineFilter) || ONLINE_FILTERS[0];
+  const matchQ = b => !q || [b.cs, b.nom].join(' ').toLowerCase().includes(q);
+
+  if (f.sold) {
+    const rows = onlineData.sold.filter(matchQ)
+      .sort((a, b) => (b.dateVenteIso || '').localeCompare(a.dateVenteIso || ''));
+    if (!rows.length) { list.innerHTML = `<div class="bv-empty">Aucun vélo vendu${q ? ' ne correspond' : ''}.</div>`; return; }
+    list.innerHTML = rows.map(b => `
+      <button class="bv-row ol-row" onclick="openBikeFromOnline('${esc(b.cs)}')">
+        <span class="bv-cs">${esc(b.cs)}</span>
+        <span class="bv-main"><span class="bv-title">${esc(b.nom)}</span><br>
+          <span class="bv-meta">En ligne le ${esc(b.depuis || 'inconnu')} · vendu le ${esc(b.dateVente || '—')}</span></span>
+        <span class="ol-price">${esc(prixTxt(b.dernierPrix))}</span>
+        <span><span class="ol-days gris">${esc(typeof b.jours === 'number' ? 'vendu en ' + joursTxt(b.jours, b.approx) : 'durée inconnue')}</span></span>
+        <span class="bv-tags">
+          ${b.nbChangements ? `<span class="ol-tag down">prix modifié ×${b.nbChangements}</span>` : ''}
+          ${b.hasFiche ? '' : '<span class="ol-tag">pas de fiche</span>'}
+        </span>
+        <span class="bv-chev" aria-hidden="true">›</span>
+      </button>`).join('');
+    return;
+  }
+
+  const rows = onlineData.online.filter(f.match).filter(matchQ).sort(ONLINE_SORTS[onlineSort].fn);
+  if (!rows.length) { list.innerHTML = `<div class="bv-empty">Aucun vélo en ligne ${q ? 'ne correspond à cette recherche' : 'dans cette tranche'}.</div>`; return; }
+  list.innerHTML = rows.map(b => {
+    const dc = b.dernierChangement;
+    const baisse = b.prixInitial && b.prix && b.prixInitial > b.prix;
+    return `
+      <button class="bv-row ol-row" onclick="openBikeFromOnline('${esc(b.cs)}')">
+        <span class="bv-cs">${esc(b.cs)}</span>
+        <span class="bv-main"><span class="bv-title">${esc(b.nom)}</span><br>
+          <span class="bv-meta">En ligne le ${esc(b.depuis || '—')}${dc ? ` · dernier prix changé le ${esc(dc.date)} (il y a ${dc.joursDepuis} j)` : ' · prix jamais changé'}</span></span>
+        <span class="ol-price">${esc(prixTxt(b.prix))}${baisse ? `<s>${esc(prixTxt(b.prixInitial))}</s>` : ''}</span>
+        <span><span class="ol-days ${joursClass(b.jours)}">${esc(joursTxt(b.jours, b.approx))}</span></span>
+        <span class="bv-tags">
+          ${b.nbChangements ? `<span class="ol-tag down">prix modifié ×${b.nbChangements}</span>` : ''}
+          ${b.hasFiche ? '' : '<span class="ol-tag">pas de fiche</span>'}
         </span>
         <span class="bv-chev" aria-hidden="true">›</span>
       </button>`;
