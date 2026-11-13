@@ -71,6 +71,7 @@ body {
   display: block;
 }
 .header-center {
+  display: none; /* texte d'état masqué : il passait derrière le logo */
   font-family: var(--mono);
   font-size: 11px;
   color: rgba(255,255,255,0.55);
@@ -892,7 +893,7 @@ button.pc-check { cursor: pointer; }
 .pc-links a.btn { text-decoration: none; }
 .pc-title-plain { border: none !important; padding: 0 !important; margin: 0 !important; }
 @media (max-width: 640px) {
-  #btn-bike .btn-lbl, #btn-board .btn-lbl, .header-center { display: none; }
+  #btn-bike .btn-lbl, #btn-board .btn-lbl, #btn-online .btn-lbl, .header-center { display: none; }
   .header-logo img { height: 32px; }
   .header-right .btn-drafts, .header-right .btn-sheets { font-size: 0; gap: 4px; padding: 9px 11px; }
   .header-right .draft-count { font-size: 10px; }
