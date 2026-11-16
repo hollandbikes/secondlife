@@ -947,7 +947,7 @@ body.bikes-mode #parcours-view { display: none !important; }
 }
 .bv-row:first-child { border-top: none; }
 .bv-row:hover { background: var(--surface); }
-.bv-cs { font-family: var(--mono); font-weight: 700; font-size: 15px; color: #00335b; width: 64px; flex-shrink: 0; }
+.bv-cs { font-family: var(--mono); font-weight: 700; font-size: 15px; color: #00335b; width: 64px; flex-shrink: 0; overflow-wrap: anywhere; line-height: 1.25; }
 .bv-main { flex: 1 1 220px; min-width: 0; }
 .bv-title { font-weight: 700; color: var(--ink); }
 .bv-meta { font-size: 12px; color: var(--ink-soft); }
@@ -2766,21 +2766,29 @@ function runParcoursAction(key) {
 }
 
 // ── Calcul de l'avancement ───────────────────────────────────
+// Vélo présent sur le site (ou vendu) : le site fait foi, les étapes d'avant sont faites
+function onSite(s) { return !!(s.enLigne || s.vendu); }
 function stepDone(s, key) {
   if (key === 'fiche')  return !!s.exists;
   if (key === 'vendu')  return !!s.vendu;
+  if (onSite(s))        return true;
   if (key === 'photos') return !!(s.photos && s.photos.found && s.photos.count > 0);
   return !!(s.parcours && s.parcours[key]);
 }
 function stepDetail(s, step, done) {
   const p = s.parcours || {};
+  if (step.key === 'fiche' && !done && onSite(s))
+    return "Pas de fiche : vélo mis en ligne sans passer par l'app";
   if (step.key === 'fiche')
     return done ? `${s.date || '—'} · ${s.technicien || '—'} · ${s.statutLabel || 'statut non renseigné'}` : 'Pas encore de fiche pour ce numéro';
   if (step.key === 'photos') {
+    if (onSite(s) && !(s.photos && s.photos.found && s.photos.count > 0)) return 'Photos publiées sur le site';
     if (!s.photos || !s.photos.found) return `Aucun dossier « ${s.cs} » dans le Drive`;
     return s.photos.count > 0 ? `${s.photos.count} photo${s.photos.count > 1 ? 's' : ''} dans le dossier Drive` : 'Dossier Drive trouvé, mais vide';
   }
-  if (step.key === 'publie' && p.publieAuto)
+  if (['travaux', 'desc', 'prix'].includes(step.key) && onSite(s) && !p[step.key + 'At'])
+    return 'Fait (vélo présent sur le site)';
+  if (step.key === 'publie' && (p.publieAuto || onSite(s)))
     return 'Détecté sur le site' + (p.publieAt ? ' · en ligne depuis le ' + p.publieAt : '');
   if (step.key === 'vendu') {
     if (s.vendu) return 'Vendu le ' + (s.vendu.dateVente || '—') + (typeof s.vendu.jours === 'number' ? ' · ' + joursTxt(s.vendu.jours, s.vendu.approx) + ' en ligne' : '');
@@ -2805,12 +2813,14 @@ function renderParcours() {
 
   const steps = s.horsParcours ? PARCOURS.filter(x => x.stage === 0) : PARCOURS;
   const doneFlags = steps.map(x => stepDone(s, x.key));
-  const firstTodoIdx = doneFlags.indexOf(false);
+  // Vélo sur le site sans fiche : la fiche manquante n'est pas « la prochaine étape »
+  const firstTodoIdx = steps.findIndex((x, i) => !doneFlags[i] && !(x.key === 'fiche' && onSite(s)));
   const next = firstTodoIdx >= 0 ? steps[firstTodoIdx] : null;
   const doneCount = doneFlags.filter(Boolean).length;
   const pct = Math.round(doneCount / steps.length * 100);
 
-  const title = s.exists ? [s.marque, s.modele].filter(Boolean).join(' ') || 'Vélo sans marque' : 'Vélo inconnu';
+  const siteNom = (s.enLigne && s.enLigne.nom) || (s.vendu && s.vendu.nom) || '';
+  const title = s.exists ? [s.marque, s.modele].filter(Boolean).join(' ') || siteNom || 'Vélo sans marque' : (siteNom || 'Vélo inconnu');
   const pill = STATUT_PILL[s.statutCode] || ['#f1f5f9', '#4a4e5c'];
   const etape = next ? PARCOURS_STAGES[next.stage].title : (s.horsParcours ? s.statutLabel : 'Vendu');
 
@@ -2826,7 +2836,7 @@ function renderParcours() {
           <div class="card-title pc-title-plain" style="margin-bottom:4px !important;">Étape actuelle : ${esc(etape)}</div>
           <div class="pc-meta">${s.exists
             ? `Inspecté le ${esc(s.date || '—')} par ${esc(s.technicien || '—')}${s.typeVelo ? ' · ' + esc(s.typeVelo) : ''}`
-            : "Aucune fiche d'inspection trouvée pour ce numéro."}</div>
+            : onSite(s) ? "Vélo présent sur le site, sans fiche d'inspection dans l'app." : "Aucune fiche d'inspection trouvée pour ce numéro."}</div>
         </div>
         ${s.statutLabel ? `<span class="pc-pill" style="background:${pill[0]};color:${pill[1]};">${esc(s.statutLabel)}</span>` : ''}
       </div>
@@ -2864,7 +2874,7 @@ function renderParcours() {
     stSteps.forEach(x => {
       const done = stepDone(s, x.key);
       const manual = x.src === 'manuel';
-      const autoDetected = x.key === 'publie' && s.parcours && s.parcours.publieAuto;
+      const autoDetected = ['travaux', 'desc', 'prix', 'publie'].includes(x.key) && onSite(s);
       const canToggle = manual && s.exists && !PARCOURS_TOOLS[x.key] && !autoDetected;
       const check = canToggle
         ? `<button class="pc-check ${done ? 'on' : ''}" onclick="toggleParcoursStep('${x.key}')" aria-label="${done ? 'Décocher' : 'Cocher'} : ${esc(x.label)}">${done ? '✓' : ''}</button>`
@@ -2889,7 +2899,7 @@ function renderParcours() {
         </div>`;
     });
     if (si === 3) html += saleBlock(s);
-    if (!s.exists && si > 0 && si < 3) {
+    if (!s.exists && !onSite(s) && si > 0 && si < 3) {
       html += `<div class="pc-meta" style="padding-top:8px;">Disponible une fois la fiche d'inspection enregistrée.</div>`;
     }
     html += `</div></div>`;
@@ -2936,19 +2946,19 @@ function renderParcours() {
 //  Données : Apps Script ?action=bikes (v7)
 // ══════════════════════════════════════════════════════════════
 const ETAPES = {
-  reco:        { label: '1 · Reconditionnement', bg: '#fff3e0', fg: '#e65100' },
-  photos:      { label: '2 · Photos',            bg: '#e3f2fd', fg: '#1565c0' },
-  miseenligne: { label: '3 · Mise en ligne',     bg: '#ede7f6', fg: '#5e35b1' },
-  enligne:     { label: '4 · En ligne',          bg: '#e8f5f0', fg: '#008f63' },
+  reco:        { label: 'Reconditionnement', bg: '#fff3e0', fg: '#e65100' },
+  photos:      { label: 'Photos',            bg: '#e3f2fd', fg: '#1565c0' },
+  miseenligne: { label: 'Mise en ligne',     bg: '#ede7f6', fg: '#5e35b1' },
+  enligne:     { label: 'En ligne',          bg: '#e8f5f0', fg: '#008f63' },
   vendu:       { label: '✓ Vendu',               bg: '#eceff1', fg: '#37474f' },
   hors:        { label: 'Hors parcours',         bg: '#f1f5f9', fg: '#4a4e5c' }
 };
 const BOARD_FILTERS = [
   { key: 'todo',        label: 'À traiter',         match: b => ['reco', 'photos', 'miseenligne'].includes(b.etapeKey) },
-  { key: 'reco',        label: '1 · Reconditionnement', match: b => b.etapeKey === 'reco' },
-  { key: 'photos',      label: '2 · Photos',        match: b => b.etapeKey === 'photos' },
-  { key: 'miseenligne', label: '3 · Mise en ligne', match: b => b.etapeKey === 'miseenligne' },
-  { key: 'enligne',     label: '4 · En ligne',      match: b => b.etapeKey === 'enligne' },
+  { key: 'reco',        label: 'Reconditionnement', match: b => b.etapeKey === 'reco' },
+  { key: 'photos',      label: 'Photos',        match: b => b.etapeKey === 'photos' },
+  { key: 'miseenligne', label: 'Mise en ligne', match: b => b.etapeKey === 'miseenligne' },
+  { key: 'enligne',     label: 'En ligne',      match: b => b.etapeKey === 'enligne' },
   { key: 'vendu',       label: 'Vendus',            match: b => b.etapeKey === 'vendu' },
   { key: 'hors',        label: 'Hors parcours',     match: b => b.etapeKey === 'hors' },
   { key: 'all',         label: 'Tous',              match: () => true }
@@ -3044,7 +3054,7 @@ function renderBoardList() {
   const q = boardQuery.trim().toLowerCase();
   const rows = boardBikes
     .filter(f.match)
-    .filter(b => !q || [b.cs, b.marque, b.modele, b.technicien, b.statutLabel].join(' ').toLowerCase().includes(q));
+    .filter(b => !q || [b.cs, b.marque, b.modele, b.nom, b.technicien, b.statutLabel].join(' ').toLowerCase().includes(q));
 
   if (!rows.length) {
     list.innerHTML = `<div class="bv-empty">Aucun vélo ${q ? 'ne correspond à cette recherche' : 'à cette étape'}.</div>`;
@@ -3053,8 +3063,10 @@ function renderBoardList() {
   list.innerHTML = rows.map(b => {
     const et = ETAPES[b.etapeKey] || ETAPES.hors;
     const etLabel = b.etapeKey === 'hors' ? (b.statutLabel || et.label) : et.label;
-    const title = [b.marque, b.modele].filter(Boolean).join(' ') || 'Vélo sans marque';
-    const meta = [b.typeVelo, b.technicien, b.date].filter(Boolean).join(' · ');
+    const title = [b.marque, b.modele].filter(Boolean).join(' ') || b.nom || 'Vélo sans marque';
+    const meta = b.hasFiche === false
+      ? (b.etapeKey === 'vendu' ? 'Vendu le ' + ((b.vendu && b.vendu.dateVente) || '—') : 'En ligne depuis le ' + (b.date || '—'))
+      : [b.typeVelo, b.technicien, b.date].filter(Boolean).join(' · ');
     return `
       <button class="bv-row" onclick="openBikeFromBoard('${esc(b.cs)}')">
         <span class="bv-cs">${esc(b.cs)}</span>
@@ -3065,6 +3077,7 @@ function renderBoardList() {
         <span class="bv-next">À faire : <strong>${esc(boardNextLabel(b))}</strong></span>
         <span class="bv-tags">
           ${b.pasOk > 0 && b.etapeKey === 'reco' ? `<span class="bv-ko">${b.pasOk} PAS OK</span>` : ''}
+          ${b.hasFiche === false ? '<span class="ol-tag">pas de fiche</span>' : ''}
           ${b.enLigne ? `<span class="ol-days ${joursClass(b.enLigne.jours)}">${esc(joursTxt(b.enLigne.jours, b.enLigne.approx))}</span>` : ''}
           <span class="pc-pill" style="background:${et.bg};color:${et.fg};">${esc(etLabel)}</span>
         </span>
