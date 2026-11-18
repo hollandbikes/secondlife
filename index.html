@@ -543,6 +543,7 @@ textarea { resize: vertical; min-height: 80px; }
   align-items: center;
   margin-top: 28px;
   gap: 12px;
+  flex-wrap: wrap;
 }
 .btn {
   padding: 12px 24px;
@@ -565,6 +566,8 @@ textarea { resize: vertical; min-height: 80px; }
   border: 1.5px solid var(--border);
 }
 .btn-secondary:hover { border-color: var(--ink-soft); color: var(--ink); }
+.btn-save { padding: 12px 18px; }
+.btn-save:disabled { opacity: .6; cursor: wait; }
 .btn-submit {
   background: var(--ink);
   color: var(--white);
@@ -1163,7 +1166,7 @@ body.online-mode #bikes-view { display: none !important; }
     </div>
 
     <div class="nav-bar">
-      <div></div>
+      <button class="btn btn-secondary btn-save" type="button" onclick="saveFicheManual()" title="Enregistrer la fiche dans le Google Sheets (tu pourras la compléter ensuite)">💾 Enregistrer</button>
       <button class="btn btn-primary" data-goto="1">Suivant →</button>
     </div>
   </section>
@@ -1248,6 +1251,7 @@ body.online-mode #bikes-view { display: none !important; }
 
     <div class="nav-bar">
       <button class="btn btn-secondary" data-goto="0">← Retour</button>
+      <button class="btn btn-secondary btn-save" type="button" onclick="saveFicheManual()" title="Enregistrer la fiche dans le Google Sheets (tu pourras la compléter ensuite)">💾 Enregistrer</button>
       <button class="btn btn-primary" data-goto="2">Suivant →</button>
     </div>
   </section>
@@ -1358,6 +1362,7 @@ body.online-mode #bikes-view { display: none !important; }
 
     <div class="nav-bar">
       <button class="btn btn-secondary" data-goto="1">← Retour</button>
+      <button class="btn btn-secondary btn-save" type="button" onclick="saveFicheManual()" title="Enregistrer la fiche dans le Google Sheets (tu pourras la compléter ensuite)">💾 Enregistrer</button>
       <button class="btn btn-primary" data-goto="3">Suivant →</button>
     </div>
   </section>
@@ -1506,6 +1511,7 @@ body.online-mode #bikes-view { display: none !important; }
 
     <div class="nav-bar">
       <button class="btn btn-secondary" data-goto="2">← Retour</button>
+      <button class="btn btn-secondary btn-save" type="button" onclick="saveFicheManual()" title="Enregistrer la fiche dans le Google Sheets (tu pourras la compléter ensuite)">💾 Enregistrer</button>
       <button class="btn btn-primary" data-goto="4">Suivant →</button>
     </div>
   </section>
@@ -1523,6 +1529,7 @@ body.online-mode #bikes-view { display: none !important; }
 
     <div class="nav-bar">
       <button class="btn btn-secondary" data-goto="3">← Retour</button>
+      <button class="btn btn-secondary btn-save" type="button" onclick="saveFicheManual()" title="Enregistrer la fiche dans le Google Sheets (tu pourras la compléter ensuite)">💾 Enregistrer</button>
       <button class="btn btn-primary" data-goto="5">Suivant →</button>
     </div>
   </section>
@@ -1540,6 +1547,7 @@ body.online-mode #bikes-view { display: none !important; }
 
     <div class="nav-bar">
       <button class="btn btn-secondary" data-goto="4">← Retour</button>
+      <button class="btn btn-secondary btn-save" type="button" onclick="saveFicheManual()" title="Enregistrer la fiche dans le Google Sheets (tu pourras la compléter ensuite)">💾 Enregistrer</button>
       <button class="btn btn-primary" data-goto="6">Récapitulatif →</button>
     </div>
   </section>
@@ -1649,6 +1657,8 @@ const SCORE_EXCLUDED_POINTS = ['p49'];
 let currentStep = 0;
 const totalSteps = 7;
 let statutGlobal = '';
+let savedCs = '';        // N° Objet CS de la fiche déjà présente dans le Sheets pour la fiche en cours
+let pendingSave = null;  // enregistrement en arrière-plan en cours (Promise)
 const inspValues = {}; // { p1: { statut: 'OK', aspect: 'BON' }, … }
 
 // ── BUILD INSPECTION HTML ───────────────────────────────────
@@ -1976,9 +1986,7 @@ function goToStep(n, skipValidation) {
   document.getElementById('progress-bar').style.width = pct + '%';
   
   // Header status
-  const marque = document.getElementById('marque').value;
-  const cs = document.getElementById('objetCS').value;
-  document.getElementById('header-status').textContent = cs ? `${cs}${marque ? ' · ' + marque : ''}` : 'Nouvelle fiche';
+  refreshHeaderStatus();
   
   // Récap
   if (n === 6) buildReview();
@@ -2051,22 +2059,10 @@ function buildReview() {
   `;
 }
 
-// ── SUBMIT ───────────────────────────────────────────────────
-async function submitForm() {
-  if (!statutGlobal) {
-    alert('Merci de sélectionner le statut global du vélo.');
-    return;
-  }
-
-  const overlay = document.getElementById('submit-overlay');
-  overlay.classList.add('visible');
-  overlay.querySelector('.submit-msg').textContent = 'Enregistrement en cours…';
-  overlay.querySelector('.submit-sub').textContent = 'Envoi vers Google Sheets';
-
+// Construit la fiche telle qu'elle est remplie à l'écran (utilisé par l'envoi final et l'enregistrement intermédiaire)
+function buildPayload() {
   const cs = document.getElementById('objetCS').value.trim();
-  const expectedSheet = cs;
-
-  const payload = {
+  return {
     header: {
       date:       document.getElementById('date').value,
       technicien: document.getElementById('technicien').value,
@@ -2126,6 +2122,31 @@ async function submitForm() {
     statutGlobal: statutGlobal,
     notes:        document.getElementById('notes').value,
   };
+}
+
+// ── SUBMIT ───────────────────────────────────────────────────
+async function submitForm() {
+  if (!statutGlobal) {
+    alert('Merci de sélectionner le statut global du vélo.');
+    return;
+  }
+
+  const overlay = document.getElementById('submit-overlay');
+  overlay.classList.add('visible');
+  overlay.querySelector('.submit-msg').textContent = 'Enregistrement en cours…';
+  overlay.querySelector('.submit-sub').textContent = 'Envoi vers Google Sheets';
+
+  // Un enregistrement intermédiaire peut encore être en cours : on attend qu'il soit terminé
+  if (pendingSave) {
+    overlay.querySelector('.submit-sub').textContent = 'Finalisation de l\'enregistrement précédent…';
+    try { await pendingSave; } catch (_) {}
+    overlay.querySelector('.submit-sub').textContent = 'Envoi vers Google Sheets';
+  }
+
+  const cs = document.getElementById('objetCS').value.trim();
+  const expectedSheet = cs;
+
+  const payload = buildPayload();
 
   // ── Envoi via iframe caché (contourne CORS complètement) ──────
   // On crée un formulaire HTML invisible qui POST vers Apps Script.
@@ -2152,6 +2173,7 @@ async function submitForm() {
     overlay.classList.remove('visible');
 
     if (confirmed) {
+      savedCs = cs;
       const banner = document.getElementById('success-banner');
       const editUrl = WEBAPP_URL + '?cs=' + encodeURIComponent(cs);
       banner.innerHTML = `✓ Fiche <strong>${expectedSheet}</strong> enregistrée dans Google Sheets !
@@ -2226,6 +2248,161 @@ function sendViaIframe(payload) {
   });
 }
 
+// ── ENREGISTREMENT INTERMÉDIAIRE (fiche créée / mise à jour dans le Sheets avant le récapitulatif) ──
+// Déclenché par le bouton « 💾 Enregistrer » (toutes les pages) et par « Suivant » depuis la page Identification.
+// On réutilise exactement le même envoi que l'enregistrement final : Apps Script crée l'onglet et la ligne Summary
+// au premier envoi, puis met la fiche à jour aux envois suivants (comme pour « Modifier cette fiche »).
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+function refreshHeaderStatus() {
+  const marque = document.getElementById('marque').value;
+  const cs = document.getElementById('objetCS').value.trim();
+  const saved = cs && cs === savedCs ? ' · ✓ enregistrée' : '';
+  document.getElementById('header-status').textContent = cs ? `${cs}${marque ? ' · ' + marque : ''}${saved}` : 'Nouvelle fiche';
+}
+
+// true = la fiche existe dans le Sheets, false = introuvable, null = Sheets injoignable / réponse inattendue
+async function ficheExists(cs) {
+  try {
+    const resp = await fetch(APPS_SCRIPT_URL + '?action=get&cs=' + encodeURIComponent(cs));
+    const result = await resp.json();
+    if (result.success) return true;
+    if (/introuvable/i.test(result.error || '')) return false;
+    return null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function validateIdentification() {
+  const date = document.getElementById('date').value;
+  const tech = document.getElementById('technicien').value.trim();
+  const cs   = document.getElementById('objetCS').value.trim();
+  if (!date || !tech || !cs) {
+    alert('Merci de remplir la Date, le Technicien et le N°Objet CS.');
+    return false;
+  }
+  if (!statutGlobal) {
+    alert('Merci de sélectionner le statut global du vélo.');
+    return false;
+  }
+  return true;
+}
+
+// Envoie la fiche telle qu'elle est remplie, puis attend que le Sheets la confirme
+async function pushFiche(cs) {
+  await sendViaIframe(buildPayload());
+  await sleep(2500);
+  for (let i = 0; i < 6; i++) {
+    if (await ficheExists(cs) === true) return true;
+    await sleep(2000);
+  }
+  return false;
+}
+
+// Vérifie le N° avant d'écrire pour ne jamais écraser une autre fiche. Retourne 'ok' | 'stop' | 'offline'.
+async function checkBeforeSave(cs) {
+  if (cs === savedCs) return 'ok'; // même fiche que celle déjà enregistrée ou chargée depuis le Sheets
+  if (savedCs && !confirm('Le N° Objet CS a changé (CS-' + savedCs + ' → CS-' + cs + ').\n\nUne NOUVELLE fiche va être créée ; la fiche CS-' + savedCs + ' restera dans le Sheets.\n\nContinuer ?')) return 'stop';
+  const exists = await ficheExists(cs);
+  if (exists === true) {
+    if (confirm('La fiche CS-' + cs + ' existe déjà dans le Sheets.\n\nOK : ouvrir la fiche existante (rien n\'est écrasé).\nAnnuler : rester ici sans enregistrer.')) {
+      await loadFromSheets(cs);
+    }
+    return 'stop';
+  }
+  if (exists === null) return 'offline';
+  return 'ok';
+}
+
+// Bouton « 💾 Enregistrer » : on attend la confirmation du Sheets
+let manualSaveBusy = false;
+async function saveFicheManual() {
+  if (manualSaveBusy) return;
+  manualSaveBusy = true;
+  try { await saveFicheManualImpl(); } finally { manualSaveBusy = false; }
+}
+async function saveFicheManualImpl() {
+  if (pendingSave) { try { await pendingSave; } catch (_) {} }
+  if (!validateIdentification()) return;
+  const cs = document.getElementById('objetCS').value.trim();
+  const overlay = document.getElementById('submit-overlay');
+  overlay.querySelector('.submit-msg').textContent = 'Enregistrement en cours…';
+  overlay.querySelector('.submit-sub').textContent = 'Vérification du N° Objet CS';
+  overlay.classList.add('visible');
+  try {
+    const check = await checkBeforeSave(cs);
+    if (check !== 'ok') {
+      overlay.classList.remove('visible');
+      if (check === 'offline') showToast('✗ Sheets injoignable — fiche non enregistrée', true);
+      return;
+    }
+    overlay.querySelector('.submit-sub').textContent = 'Envoi vers Google Sheets';
+    const ok = await pushFiche(cs);
+    overlay.classList.remove('visible');
+    if (ok) {
+      savedCs = cs;
+      refreshHeaderStatus();
+      showToast('✓ Fiche CS-' + cs + ' enregistrée dans le Sheets — tu peux la compléter ensuite');
+    } else {
+      showToast('✗ Enregistrement non confirmé — vérifie le Sheets avant de continuer', true);
+    }
+  } catch (err) {
+    overlay.classList.remove('visible');
+    showToast('✗ Erreur : ' + err.message, true);
+  }
+}
+
+// Clic sur « Suivant » depuis Identification : vérifie le N°, lance l'enregistrement en arrière-plan et avance aussitôt
+let identificationBusy = false;
+async function nextFromIdentification() {
+  if (identificationBusy) return;
+  identificationBusy = true;
+  try { await nextFromIdentificationImpl(); } finally { identificationBusy = false; }
+}
+async function nextFromIdentificationImpl() {
+  if (pendingSave) { try { await pendingSave; } catch (_) {} } // un enregistrement est déjà en cours : on attend sa fin
+  if (!validateIdentification()) return;
+  const cs = document.getElementById('objetCS').value.trim();
+  const overlay = document.getElementById('submit-overlay');
+  overlay.querySelector('.submit-msg').textContent = 'Vérification…';
+  overlay.querySelector('.submit-sub').textContent = 'N° Objet CS dans Google Sheets';
+  overlay.classList.add('visible');
+  let check;
+  try { check = await checkBeforeSave(cs); }
+  catch (err) { check = 'offline'; }
+  finally { overlay.classList.remove('visible'); }
+  if (check === 'stop') return;
+  if (check === 'offline') {
+    if (!confirm('Le Sheets est injoignable : la fiche ne sera pas enregistrée pour le moment.\n\nContinuer quand même ?')) return;
+    goToStep(1, true);
+    return;
+  }
+  goToStep(1, true);
+  startBackgroundSave(cs);
+}
+
+function startBackgroundSave(cs) {
+  showToast('Enregistrement de la fiche CS-' + cs + '…');
+  pendingSave = (async () => {
+    try {
+      const ok = await pushFiche(cs);
+      if (ok) {
+        savedCs = cs;
+        refreshHeaderStatus();
+        showToast('✓ Fiche CS-' + cs + ' enregistrée dans le Sheets');
+      } else {
+        showToast('✗ Enregistrement non confirmé — utilise « 💾 Enregistrer » pour réessayer', true);
+      }
+    } catch (err) {
+      showToast('✗ Enregistrement échoué : ' + err.message, true);
+    } finally {
+      pendingSave = null;
+    }
+  })();
+}
+
 // ── RESET ────────────────────────────────────────────────────
 function resetForm() {
   document.getElementById('success-banner').style.display = 'none';
@@ -2239,6 +2416,8 @@ function resetForm() {
   document.querySelectorAll('[data-mecanique-na="true"]').forEach(f => f.title = '');
   Object.keys(inspValues).forEach(k => delete inspValues[k]);
   statutGlobal = '';
+  savedCs = '';
+  pendingSave = null;
   veloType = '';
   document.querySelectorAll('.sbtn').forEach(b => b.className = 'sbtn');
   document.querySelectorAll('.sgbtn').forEach(b => b.classList.remove('active'));
@@ -2385,6 +2564,7 @@ document.addEventListener('click', function(e) {
   var btn = e.target.closest('[data-goto]');
   if (btn) {
     var n = parseInt(btn.getAttribute('data-goto'));
+    if (currentStep === 0 && n === 1) { nextFromIdentification(); return; }
     goToStep(n);
   }
 });
@@ -2405,6 +2585,7 @@ async function loadFromSheets(cs) {
     if (!result.success) throw new Error(result.error);
 
     const d = result.data;
+    savedCs = String(cs); // cette fiche existe déjà dans le Sheets
 
     // Restore header
     setField('date',        d.header?.date || '');
