@@ -526,11 +526,14 @@ textarea { resize: vertical; min-height: 80px; }
   text-align: center;
 }
 .sgbtn:hover { border-color: var(--ink-soft); color: var(--ink); }
-.sgbtn[data-val="PRET"].active          { background: #e8f5e9; border-color: #2e7d32; color: #2e7d32; }
-.sgbtn[data-val="FACILE_RECO"].active   { background: #fff3e0; border-color: #e65100; color: #e65100; }
-.sgbtn[data-val="RECONDITIONNABLE"].active { background: #fffde7; border-color: #f9a825; color: #f9a825; }
+.sgbtn[data-val="RECONDITIONNABLE"].active { background: #fff3e0; border-color: #e65100; color: #e65100; }
 .sgbtn[data-val="UPWAY"].active        { background: #e3f2fd; border-color: #1565c0; color: #1565c0; }
 .sgbtn[data-val="M2IE"].active          { background: #ffebee; border-color: #c62828; color: #c62828; }
+/* Statuts automatiques (v12) : affichés, pas cliquables */
+.statut-auto { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); }
+.statut-auto-lbl { width: 100%; font-size: 12px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .04em; }
+.statut-auto-item { flex: 1 1 240px; padding: 10px 12px; border-radius: 10px; background: #f8fafc; border: 1px solid var(--border); font-size: 13px; color: var(--ink); }
+.statut-auto-item small { display: block; margin-top: 2px; font-size: 12px; color: var(--ink-soft); }
 .sgbtn[data-val="POUR_PIECES"].active   { background: #f5f5f5; border-color: #212121; color: #212121; }
 .sgbtn[data-val="RECO_INVERSION"].active { background: #fafafa; border-color: #9e9e9e; color: #616161; }
 .sgbtn[data-val="ELECTRIQUE"].active { background: #fff3e0; border-color: #e65100; color: #e65100; }
@@ -1262,13 +1265,17 @@ body.online-mode #bikes-view { display: none !important; }
     <div class="card">
       <div class="card-title">Statut global du vélo <span class="req">*</span></div>
       <div class="statut-global-btns">
-        <button class="sgbtn" data-val="PRET"           onclick="setStatutGlobal(this)"><span style="color:#2e7d32">●</span> Prêt (en ligne)</button>
-        <button class="sgbtn" data-val="FACILE_RECO"    onclick="setStatutGlobal(this)"><span style="color:#e65100">●</span> Facile à reco</button>
-        <button class="sgbtn" data-val="RECONDITIONNABLE" onclick="setStatutGlobal(this)"><span style="color:#f9a825">●</span> Reconditionnable</button>
+        <button class="sgbtn" data-val="RECONDITIONNABLE" onclick="setStatutGlobal(this)"><span style="color:#e65100">●</span> Vélo à reconditionner</button>
         <button class="sgbtn" data-val="UPWAY"         onclick="setStatutGlobal(this)"><span style="color:#1565c0">●</span> Upway</button>
-        <button class="sgbtn" data-val="M2IE"           onclick="setStatutGlobal(this)"><span style="color:#c62828">●</span> M2ie</button>
         <button class="sgbtn" data-val="POUR_PIECES"    onclick="setStatutGlobal(this)"><span style="color:#212121">●</span> Pour pièces</button>
         <button class="sgbtn" data-val="RECO_INVERSION" onclick="setStatutGlobal(this)"><span style="color:#9e9e9e">●</span> Reco inversion (non élec)</button>
+      </div>
+      <div class="statut-auto">
+        <div class="statut-auto-lbl">Statuts automatiques</div>
+        <div class="statut-auto-item"><span style="color:#00897b">●</span> <strong>Vélo prêt pour mise en ligne</strong>
+          <small>Dès que la fiche n'a plus aucun PAS OK et que les photos sont dans le Drive.</small></div>
+        <div class="statut-auto-item"><span style="color:#2e7d32">●</span> <strong>Vélo en ligne</strong>
+          <small>Dès que le vélo apparaît sur le site Holland Bikes.</small></div>
       </div>
       <div id="statut-skip-notice" style="display:none;margin-top:12px;padding:10px 14px;border-radius:10px;background:#e3f2fd;color:#1565c0;font-size:13px;font-weight:600;">
         ℹ Ce statut ne nécessite pas d'inspection détaillée — tous les champs seront marqués NA et tu seras dirigé directement vers le récapitulatif.
@@ -1742,9 +1749,9 @@ const INSPECTION_POINTS = [
   { id: 'p46', label: 'L\'assistance se coupe à 25 km/h', type: 'ok-na-pasok', aspect: null },
   { group: 'Propreté', id: 'p47', label: 'Le vélo a été nettoyé', type: 'ok-na-pasok', aspect: null },
   { id: 'p48', label: 'Le vélo ne présente pas d\'autocollant ou de résidu de colle', type: 'ok-na-pasok', aspect: null },
-  { id: 'p49', label: 'Un autre marquage antivol est présent sur le vélo au nom de HB', type: 'oui-non', aspect: 'marque-num' },
+  { id: 'p49', label: 'Un autre marquage antivol est présent sur le vélo au nom de HB', type: 'oui-non', aspect: 'marque-num', hint: 'Facultatif : ne compte pas dans le score' },
   { id: 'p50', label: 'Les clés sont liées solidement au vélo / Total clé', type: 'ok-na-pasok', aspect: 'nb-cles' },
-  { group: 'Essai final', id: 'p51', label: 'Certificat de conformité et notice d\'utilisation fournis', type: 'oui-non-na', aspect: null },
+  { group: 'Essai final', id: 'p51', label: 'Certificat de conformité et notice d\'utilisation fournis', type: 'oui-non-na', aspect: null, hint: 'Facultatif : NON ne compte pas comme PAS OK' },
   { id: 'p52', label: 'Fiche objet CS à jour', type: 'oui-non', aspect: null, csReminder: true },
   { id: 'p53', label: 'Trajet de test (assistance à 25km/h si applicable)', type: 'ok-na-pasok', aspect: null },
 ];
@@ -1753,7 +1760,22 @@ const INSPECTION_POINTS = [
 // et ne doit pas être traitée comme un point bloquant.
 const SCORE_EXCLUDED_POINTS = ['p49'];
 // Points dont le NON ne compte pas comme PAS OK (compté comme NA, comme dans le Summary)
-const NEUTRAL_NON_POINTS = ['p25'];
+const NEUTRAL_NON_POINTS = ['p25', 'p49', 'p51'];
+
+// Statut choisi dans la fiche (v12) : anciens codes ramenés à « Vélo à reconditionner ».
+// « Prêt pour mise en ligne » et « En ligne » sont calculés par le script, jamais choisis.
+function normalizeStatutSaisi(code) {
+  code = String(code || '').trim();
+  if (!code || code === 'FACILE_RECO' || code === 'PRET' || code === 'EN_LIGNE' || code === 'VENDU') return 'RECONDITIONNABLE';
+  return code;
+}
+function selectDefaultStatut() {
+  statutGlobal = 'RECONDITIONNABLE';
+  document.querySelectorAll('.statut-global-btns .sgbtn').forEach(b => {
+    if (b.closest('#velo-type-btns')) return;
+    b.classList.toggle('active', b.dataset.val === statutGlobal);
+  });
+}
 function scoreCategory(id, statut) {
   if (statut === 'OK' || statut === 'OUI') return 'ok';
   if (statut === 'NON' && NEUTRAL_NON_POINTS.includes(id)) return 'na';
@@ -2055,7 +2077,7 @@ function setStatutGlobal(btn) {
   statutGlobal = btn.dataset.val;
 
   const notice = document.getElementById('statut-skip-notice');
-  const isBypass = statutGlobal === 'UPWAY' || statutGlobal === 'M2IE';
+  const isBypass = statutGlobal === 'UPWAY';
   if (notice) notice.style.display = isBypass ? 'block' : 'none';
 
   if (isBypass) {
@@ -2629,6 +2651,7 @@ function resetForm() {
   document.querySelectorAll('.sgbtn').forEach(b => b.classList.remove('active'));
   const notice = document.getElementById('statut-skip-notice');
   if (notice) notice.style.display = 'none';
+  selectDefaultStatut();
   goToStep(0, true);
 }
 
@@ -2669,8 +2692,8 @@ function updateDraftCount() {
 
 function renderSheetsFiches(fiches) {
   if (!fiches || fiches.length === 0) return '';
-  const statusColors = {'PRET':'#2e7d32','FACILE_RECO':'#e65100','RECONDITIONNABLE':'#f9a825','UPWAY':'#1565c0','M2IE':'#c62828','POUR_PIECES':'#212121','RECO_INVERSION':'#9e9e9e'};
-  const statusLabels = {'PRET':'Prêt (en ligne)','FACILE_RECO':'Facile à reco','RECONDITIONNABLE':'Reconditionnable','UPWAY':'Upway','M2IE':'M2ie','POUR_PIECES':'Pour pièces','RECO_INVERSION':'Reco inversion'};
+  const statusColors = {'RECONDITIONNABLE':'#e65100','UPWAY':'#1565c0','M2IE':'#c62828','POUR_PIECES':'#212121','RECO_INVERSION':'#9e9e9e'};
+  const statusLabels = {'RECONDITIONNABLE':'Vélo à reconditionner','UPWAY':'Upway','M2IE':'M2ie (ancien statut)','POUR_PIECES':'Pour pièces','RECO_INVERSION':'Reco inversion'};
   return fiches.map(f => {
     const sc = statusColors[f.statut] || '#94a3b8';
     const label = statusLabels[f.statut] || f.statut || 'Sans statut';
@@ -2740,6 +2763,7 @@ function newFiche() {
 // ── INIT ─────────────────────────────────────────────────────
 // Set today's date
 document.getElementById('date').valueAsDate = new Date();
+selectDefaultStatut();
 
 // Build inspection sections
 buildInspection('insp-mec',  INSPECTION_POINTS.slice(0, 23));
@@ -2926,7 +2950,7 @@ async function loadFromSheets(cs) {
     });
 
     // Statut global
-    statutGlobal = d.statutGlobal || '';
+    statutGlobal = normalizeStatutSaisi(d.statutGlobal);
     document.querySelectorAll('.sgbtn').forEach(b => b.classList.remove('active'));
     if (statutGlobal) {
       const sgbtn = document.querySelector(`.sgbtn[data-val="${statutGlobal}"]`);
@@ -3026,9 +3050,10 @@ const PARCOURS_STAGES = [
 const PARCOURS_TOOLS = {};
 
 const STATUT_PILL = {
-  PRET:             ['#e8f5e9', '#2e7d32'],
-  FACILE_RECO:      ['#fff3e0', '#e65100'],
-  RECONDITIONNABLE: ['#fffde7', '#a07800'],
+  EN_LIGNE:         ['#e8f5e9', '#2e7d32'],
+  PRET:             ['#e0f2f1', '#00796b'],
+  VENDU:            ['#eceff1', '#37474f'],
+  RECONDITIONNABLE: ['#fff3e0', '#e65100'],
   UPWAY:            ['#e3f2fd', '#1565c0'],
   M2IE:             ['#ffebee', '#c62828'],
   POUR_PIECES:      ['#eeeeee', '#212121'],
