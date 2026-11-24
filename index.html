@@ -1013,6 +1013,88 @@ body.online-mode #bikes-view { display: none !important; }
   .bv-cs { width: auto; }
   .bv-chev { display: none; }
 }
+
+/* ── v11 ─────────────────────────────────────────────── */
+/* Menu « état » : visible seulement quand le point est OK */
+.aspect-sel.etat-sel { visibility: hidden; }
+.insp-row.is-ok .aspect-sel.etat-sel { visibility: visible; }
+@media (max-width: 680px) {
+  .aspect-sel.etat-sel { display: none; }
+  .insp-row.is-ok .aspect-sel.etat-sel { display: block; }
+}
+.insp-hint { display: block; font-size: 11px; color: var(--ink-soft); margin-top: 2px; }
+
+/* Champs remplis depuis CycleSoftware */
+.cs-src {
+  display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 6px;
+  background: #e3f2fd; color: #1565c0; font-family: var(--mono); font-size: 10px; font-weight: 700;
+  letter-spacing: .03em; vertical-align: middle;
+}
+.field.from-cs input, .field.from-cs select { border-color: #90caf9; background: #f5faff; }
+.cs-prefill-box:empty { display: none; }
+.cs-prefill-box {
+  margin-bottom: 16px; padding: 12px 16px; border-radius: 12px;
+  background: #e3f2fd; color: #0d47a1; font-size: 13px; line-height: 1.45;
+}
+.cs-prefill-box.warn { background: #fff8e1; color: #8a5a00; }
+.cs-prefill-box.muted { background: #f1f5f9; color: var(--ink-soft); }
+.cs-prefill-box .btn { padding: 6px 12px; font-size: 12px; margin-left: 8px; vertical-align: middle; }
+.cs-prefill-box .submit-spinner { display: inline-block; vertical-align: middle; margin-right: 8px !important; }
+
+/* N° CS + bouton scan */
+.cs-input-row { display: flex; gap: 8px; align-items: stretch; }
+.cs-input-row input { flex: 1; min-width: 0; }
+.btn-scan {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 14px; border-radius: 8px; border: 1.5px solid var(--border);
+  background: #fff; color: #00335b; font-family: var(--sans); font-size: 13px; font-weight: 700;
+  cursor: pointer; white-space: nowrap;
+}
+.btn-scan:hover { border-color: #00335b; }
+.gate-scan { width: 100%; margin-top: 10px; padding: 12px; border-radius: 14px; background: rgba(255,255,255,0.7); }
+
+/* Fenêtres (N° CS invalide, scanner) */
+.sl-modal {
+  position: fixed; inset: 0; z-index: 1500; display: none;
+  align-items: center; justify-content: center; padding: 20px;
+  background: rgba(0, 20, 40, 0.45);
+}
+.sl-modal.visible { display: flex; }
+.sl-modal-card {
+  width: 100%; max-width: 420px; background: #fff; border-radius: 18px; padding: 22px 22px 18px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+.sl-modal-title { font-size: 18px; font-weight: 700; color: #00335b; margin-bottom: 8px; }
+.sl-modal-text { font-size: 14px; color: var(--ink); line-height: 1.5; }
+.sl-modal-text strong { color: var(--warn); }
+.sl-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
+#scan-reader { width: 100%; min-height: 220px; border-radius: 12px; overflow: hidden; background: #0b1b2b; }
+#scan-reader video { width: 100% !important; border-radius: 12px; }
+.scan-msg { margin-top: 10px; font-size: 13px; color: var(--ink-soft); min-height: 18px; }
+.scan-msg.error { color: var(--warn); font-weight: 600; }
+
+/* Rapport batterie PDF */
+.bp-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.bp-row input[type="file"] { display: none; }
+.bp-status { margin-top: 12px; font-size: 13px; line-height: 1.5; color: var(--ink-soft); }
+.bp-status.ok { color: #1b5e20; }
+.bp-status.error { color: var(--warn); font-weight: 600; }
+.bp-status a { color: #1a73e8; font-weight: 700; }
+.bp-memo { margin-top: 8px; padding: 10px 12px; border-radius: 10px; background: #f8fafc; border: 1px dashed var(--border); font-size: 12px; color: var(--ink-soft); }
+.bp-memo code { font-family: var(--mono); font-size: 11px; color: #00335b; }
+
+/* Rappel des champs CS à mettre à jour (point 52) */
+.cs-reminder {
+  margin: 2px 0 10px; padding: 12px 14px; border-radius: 10px;
+  background: #fff8e1; border: 1px solid #ffe082; font-size: 13px; color: #5d4300;
+}
+.cs-reminder-title { font-weight: 700; margin-bottom: 6px; }
+.cs-reminder table { border-collapse: collapse; width: 100%; }
+.cs-reminder td { padding: 3px 0; vertical-align: top; }
+.cs-reminder td:first-child { width: 120px; color: #8a6d00; }
+.cs-reminder .val { font-family: var(--mono); font-weight: 700; color: #00335b; word-break: break-word; }
+.cs-reminder .missing { color: var(--warn); font-style: italic; }
+.cs-copy { margin-left: 6px; padding: 2px 8px; border-radius: 6px; border: 1px solid #e0c060; background: #fff; font-size: 11px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -1024,16 +1106,41 @@ body.online-mode #bikes-view { display: none !important; }
     <button class="cs-gate-close" onclick="closeGate()" aria-label="Fermer">×</button>
     <div class="cs-gate-eyebrow">Second Life · EBSC</div>
     <div class="cs-gate-title" id="gate-title">Quel vélo ?</div>
-    <div class="cs-gate-sub">Saisis le N° Objet CS pour voir où en est le vélo et ce qu'il reste à faire.</div>
+    <div class="cs-gate-sub">Saisis ou scanne le N° Objet CS du vélo (5 chiffres) pour voir où il en est et ce qu'il reste à faire.</div>
     <label for="gate-cs" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">N° Objet CS</label>
     <input id="gate-cs" class="cs-gate-input" inputmode="numeric" autocomplete="off" placeholder="N° CS"
            onkeydown="if(event.key==='Enter'){event.preventDefault();submitGate();}">
+    <button type="button" class="btn-scan gate-scan" onclick="openScanner('gate')">📷 Scanner le numéro du vélo</button>
     <button id="gate-go" class="cs-gate-go" onclick="submitGate()">Continuer →</button>
     <div id="gate-msg" class="cs-gate-msg" aria-live="polite"></div>
     <div class="cs-gate-links">
       <button onclick="openBoard()">Vélos par étape</button>
       <button onclick="openOnline()">Vélos en ligne</button>
       <button onclick="closeGate()">Fiche sans N° CS</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── N° CS INVALIDE ─────────────────────────────── -->
+<div id="cs-popup" class="sl-modal" role="alertdialog" aria-modal="true" aria-labelledby="cs-popup-title">
+  <div class="sl-modal-card">
+    <div class="sl-modal-title" id="cs-popup-title">N° Objet CS invalide</div>
+    <div class="sl-modal-text" id="cs-popup-text"></div>
+    <div class="sl-modal-actions">
+      <button class="btn btn-primary" id="cs-popup-ok" onclick="closeCsPopup()">Compris</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SCANNER ────────────────────────────────────── -->
+<div id="scan-modal" class="sl-modal" role="dialog" aria-modal="true" aria-labelledby="scan-title">
+  <div class="sl-modal-card">
+    <div class="sl-modal-title" id="scan-title">Scanner le numéro du vélo</div>
+    <div class="sl-modal-text" style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">Vise l'étiquette CycleSoftware du vélo (N° Objet CS), pas le code-barres EAN du fabricant.</div>
+    <div id="scan-reader"></div>
+    <div class="scan-msg" id="scan-msg"></div>
+    <div class="sl-modal-actions">
+      <button class="btn btn-secondary" onclick="closeScanner()">Annuler</button>
     </div>
   </div>
 </div>
@@ -1144,7 +1251,10 @@ body.online-mode #bikes-view { display: none !important; }
         </div>
         <div class="field">
           <label for="objetCS">N° Objet CS <span class="req">*</span></label>
-          <input type="text" id="objetCS" required>
+          <div class="cs-input-row">
+            <input type="text" id="objetCS" inputmode="numeric" autocomplete="off" placeholder="5 chiffres" required onchange="onObjetCsChange()">
+            <button type="button" class="btn-scan" onclick="openScanner('form')" title="Scanner le numéro du vélo">📷 Scanner</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1165,9 +1275,8 @@ body.online-mode #bikes-view { display: none !important; }
       </div>
     </div>
 
-    <div class="nav-bar">
-      <button class="btn btn-secondary btn-save" type="button" onclick="saveFicheManual()" title="Enregistrer la fiche dans le Google Sheets (tu pourras la compléter ensuite)">💾 Enregistrer</button>
-      <button class="btn btn-primary" data-goto="1">Suivant →</button>
+    <div class="nav-bar" style="justify-content:flex-end;">
+      <button class="btn btn-primary btn-save" type="button" data-save-goto="1" title="Enregistre la fiche dans le Google Sheets et passe à l'étape suivante">💾 Enregistrer et continuer →</button>
     </div>
   </section>
 
@@ -1177,6 +1286,8 @@ body.online-mode #bikes-view { display: none !important; }
   <section class="step-section" id="step-1">
     <div class="section-eyebrow">Étape 2 / 7</div>
     <h1 class="section-title">Caractéristiques du vélo</h1>
+
+    <div class="cs-prefill-box" id="cs-prefill-box" aria-live="polite"></div>
 
     <div class="card">
       <div class="card-title">Général</div>
@@ -1208,10 +1319,6 @@ body.online-mode #bikes-view { display: none !important; }
           <label for="kilometrage">Kilométrage</label>
           <input type="text" id="kilometrage">
         </div>
-        <div class="field">
-          <label for="poidsVelo">Poids du vélo</label>
-          <input type="text" id="poidsVelo">
-        </div>
       </div>
     </div>
 
@@ -1238,21 +1345,12 @@ body.online-mode #bikes-view { display: none !important; }
           <label for="couleurPrincipale">Couleur principale</label>
           <input type="text" id="couleurPrincipale">
         </div>
-        <div class="field">
-          <label for="couleurSecondaire">Couleur secondaire</label>
-          <input type="text" id="couleurSecondaire">
-        </div>
-        <div class="field">
-          <label for="poidsNetBrut">Poids net / brut</label>
-          <input type="text" id="poidsNetBrut">
-        </div>
       </div>
     </div>
 
     <div class="nav-bar">
       <button class="btn btn-secondary" data-goto="0">← Retour</button>
-      <button class="btn btn-secondary btn-save" type="button" onclick="saveFicheManual()" title="Enregistrer la fiche dans le Google Sheets (tu pourras la compléter ensuite)">💾 Enregistrer</button>
-      <button class="btn btn-primary" data-goto="2">Suivant →</button>
+      <button class="btn btn-primary btn-save" type="button" data-save-goto="2" title="Enregistre la fiche dans le Google Sheets et passe à l'étape suivante">💾 Enregistrer et continuer →</button>
     </div>
   </section>
 
@@ -1346,10 +1444,6 @@ body.online-mode #bikes-view { display: none !important; }
           </select>
         </div>
         <div class="field" data-mecanique-na="true">
-          <label for="batterieEtat">État (%)</label>
-          <input type="text" id="batterieEtat">
-        </div>
-        <div class="field" data-mecanique-na="true">
           <label for="batterieCycles">Cycles de charge</label>
           <input type="text" id="batterieCycles">
         </div>
@@ -1360,10 +1454,19 @@ body.online-mode #bikes-view { display: none !important; }
       </div>
     </div>
 
+    <div class="card" id="battery-pdf-card">
+      <div class="card-title">Rapport batterie (PDF)</div>
+      <div style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;">Si un rapport de test batterie est disponible, ajoute-le ici : il est rangé dans le dossier photos du vélo.</div>
+      <div class="bp-row">
+        <input type="file" id="batteryPdfInput" accept="application/pdf,.pdf" onchange="onBatteryPdfChosen(this)">
+        <label for="batteryPdfInput" class="btn btn-secondary" id="battery-pdf-btn" style="cursor:pointer;">📄 Ajouter le rapport PDF</label>
+      </div>
+      <div class="bp-status" id="battery-pdf-status" aria-live="polite"></div>
+    </div>
+
     <div class="nav-bar">
       <button class="btn btn-secondary" data-goto="1">← Retour</button>
-      <button class="btn btn-secondary btn-save" type="button" onclick="saveFicheManual()" title="Enregistrer la fiche dans le Google Sheets (tu pourras la compléter ensuite)">💾 Enregistrer</button>
-      <button class="btn btn-primary" data-goto="3">Suivant →</button>
+      <button class="btn btn-primary btn-save" type="button" data-save-goto="3" title="Enregistre la fiche dans le Google Sheets et passe à l'étape suivante">💾 Enregistrer et continuer →</button>
     </div>
   </section>
 
@@ -1511,8 +1614,7 @@ body.online-mode #bikes-view { display: none !important; }
 
     <div class="nav-bar">
       <button class="btn btn-secondary" data-goto="2">← Retour</button>
-      <button class="btn btn-secondary btn-save" type="button" onclick="saveFicheManual()" title="Enregistrer la fiche dans le Google Sheets (tu pourras la compléter ensuite)">💾 Enregistrer</button>
-      <button class="btn btn-primary" data-goto="4">Suivant →</button>
+      <button class="btn btn-primary btn-save" type="button" data-save-goto="4" title="Enregistre la fiche dans le Google Sheets et passe à l'étape suivante">💾 Enregistrer et continuer →</button>
     </div>
   </section>
 
@@ -1529,8 +1631,7 @@ body.online-mode #bikes-view { display: none !important; }
 
     <div class="nav-bar">
       <button class="btn btn-secondary" data-goto="3">← Retour</button>
-      <button class="btn btn-secondary btn-save" type="button" onclick="saveFicheManual()" title="Enregistrer la fiche dans le Google Sheets (tu pourras la compléter ensuite)">💾 Enregistrer</button>
-      <button class="btn btn-primary" data-goto="5">Suivant →</button>
+      <button class="btn btn-primary btn-save" type="button" data-save-goto="5" title="Enregistre la fiche dans le Google Sheets et passe à l'étape suivante">💾 Enregistrer et continuer →</button>
     </div>
   </section>
 
@@ -1547,8 +1648,7 @@ body.online-mode #bikes-view { display: none !important; }
 
     <div class="nav-bar">
       <button class="btn btn-secondary" data-goto="4">← Retour</button>
-      <button class="btn btn-secondary btn-save" type="button" onclick="saveFicheManual()" title="Enregistrer la fiche dans le Google Sheets (tu pourras la compléter ensuite)">💾 Enregistrer</button>
-      <button class="btn btn-primary" data-goto="6">Récapitulatif →</button>
+      <button class="btn btn-primary btn-save" type="button" data-save-goto="6" title="Enregistre la fiche dans le Google Sheets et passe à l'étape suivante">💾 Enregistrer · Récapitulatif →</button>
     </div>
   </section>
 
@@ -1610,14 +1710,14 @@ const INSPECTION_POINTS = [
   { id: 'p16', label: 'Le pédalier est serré, graissé et ne présente pas de jeu', type: 'ok-na-pasok', aspect: 'neuf-bon-moyen' },
   { id: 'p17', label: 'La cassette / roue libre / pignon est serrée, graissée et sans jeu', type: 'ok-na-pasok', aspect: 'neuf-bon-moyen' },
   { id: 'p18', label: 'Les vitesses passent correctement dans les deux sens, sans saut', type: 'ok-na-pasok', aspect: 'neuf-bon-moyen' },
-  { id: 'p19', label: 'Les pédales sont retirées et fixées au guidon ou dans la sacoche', type: 'ok-na-pasok', aspect: 'neuf-bon-moyen' },
+  { id: 'p19', label: 'Les pédales sont bien fixées', type: 'ok-na-pasok', aspect: 'neuf-bon-moyen' },
   { group: 'Selle', id: 'p20', label: 'La selle est fonctionnelle et ne présente pas de jeu', type: 'ok-na-pasok', aspect: 'neuf-bon-moyen' },
   { id: 'p21', label: 'La tige de selle et la fixation sont fonctionnelles et sans jeu', type: 'ok-na-pasok', aspect: 'neuf-bon-moyen' },
   { group: 'Suspensions', id: 'p22', label: 'Les suspensions sont fonctionnelles (testées compression ouvert / fermé)', type: 'ok-na-pasok', aspect: 'neuf-bon-moyen' },
   { id: 'p23', label: 'Les tubes plongeurs sans oxydation et sans fuite sur les joints', type: 'ok-na-pasok', aspect: 'neuf-bon-moyen' },
   // Électrique
   { group: '2. Électrique — Batterie', id: 'p24', label: 'La batterie fonctionne', type: 'ok-na-pasok', aspect: 'neuf-bon-moyen' },
-  { id: 'p25', label: 'Le rapport de test est fourni', type: 'oui-non', aspect: null },
+  { id: 'p25', label: 'Le rapport de test est fourni', type: 'oui-non', aspect: null, hint: 'NON ne compte pas dans le score (compté comme NA)' },
   { id: 'p26', label: 'Le chargeur est présent, fonctionnel et compatible', type: 'ok-na-pasok', aspect: 'neuf-bon-moyen' },
   { id: 'p27', label: 'La clé pour retirer la batterie est présente et la serrure fonctionne', type: 'ok-na-pasok', aspect: 'cles' },
   { id: 'p28', label: 'La batterie est bien fixée et ne présente aucun jeu', type: 'ok-na-pasok', aspect: null },
@@ -1645,13 +1745,30 @@ const INSPECTION_POINTS = [
   { id: 'p49', label: 'Un autre marquage antivol est présent sur le vélo au nom de HB', type: 'oui-non', aspect: 'marque-num' },
   { id: 'p50', label: 'Les clés sont liées solidement au vélo / Total clé', type: 'ok-na-pasok', aspect: 'nb-cles' },
   { group: 'Essai final', id: 'p51', label: 'Certificat de conformité et notice d\'utilisation fournis', type: 'oui-non-na', aspect: null },
-  { id: 'p52', label: 'Fiche objet CS à jour', type: 'oui-non', aspect: null },
+  { id: 'p52', label: 'Fiche objet CS à jour', type: 'oui-non', aspect: null, csReminder: true },
   { id: 'p53', label: 'Trajet de test (assistance à 25km/h si applicable)', type: 'ok-na-pasok', aspect: null },
 ];
 
 // Points informatifs : la réponse (OUI/NON) n'entre pas dans le score
 // et ne doit pas être traitée comme un point bloquant.
 const SCORE_EXCLUDED_POINTS = ['p49'];
+// Points dont le NON ne compte pas comme PAS OK (compté comme NA, comme dans le Summary)
+const NEUTRAL_NON_POINTS = ['p25'];
+function scoreCategory(id, statut) {
+  if (statut === 'OK' || statut === 'OUI') return 'ok';
+  if (statut === 'NON' && NEUTRAL_NON_POINTS.includes(id)) return 'na';
+  if (statut === 'PAS OK' || statut === 'NON') return 'pasok';
+  if (statut === 'NA') return 'na';
+  return '';
+}
+
+// États (anciennes valeurs Neuf / Bon / Moyen converties à l'ouverture d'une fiche)
+const ETAT_OPTIONS = ['Excellent état', 'Très bon état', 'Bon état'];
+const ETAT_LEGACY = { 'NEUF': 'Excellent état', 'BON': 'Très bon état', 'MOYEN': 'Bon état' };
+function isEtatPoint(id) {
+  const pt = INSPECTION_POINTS.find(x => x.id === id);
+  return !!(pt && pt.aspect === 'neuf-bon-moyen');
+}
 
 // ── STATE ───────────────────────────────────────────────────
 let currentStep = 0;
@@ -1659,7 +1776,19 @@ const totalSteps = 7;
 let statutGlobal = '';
 let savedCs = '';        // N° Objet CS de la fiche déjà présente dans le Sheets pour la fiche en cours
 let pendingSave = null;  // enregistrement en arrière-plan en cours (Promise)
-const inspValues = {}; // { p1: { statut: 'OK', aspect: 'BON' }, … }
+const inspValues = {}; // { p1: { statut: 'OK', aspect: 'Très bon état' }, … }
+// Champs retirés du formulaire (v11) : on garde la valeur lue dans le Sheets pour ne rien effacer
+let legacyValues = {};
+
+// Inspection envoyée au Sheets : pas d'état pour un point qui n'est pas OK
+function inspectionForPayload() {
+  const out = {};
+  Object.entries(inspValues).forEach(([id, v]) => {
+    out[id] = Object.assign({}, v);
+    if (isEtatPoint(id) && v.statut !== 'OK') out[id].aspect = '';
+  });
+  return out;
+}
 
 // ── BUILD INSPECTION HTML ───────────────────────────────────
 function buildInspection(containerId, points, startNum) {
@@ -1672,36 +1801,38 @@ function buildInspection(containerId, points, startNum) {
       html += `<div class="insp-group-title">${pt.group}</div>`;
     }
     
+    const cur = inspValues[pt.id] || {};
+    const actCls = v => cur.statut !== v ? '' : (v === 'OK' || v === 'OUI') ? ' active-ok' : v === 'NA' ? ' active-na' : ' active-pasok';
     // Statut buttons
     let statutHtml = '';
     if (pt.type === 'ok-na-pasok') {
       statutHtml = `
         <div class="statut-btns">
-          <button class="sbtn" data-id="${pt.id}" data-val="OK"     onclick="setStatut(this)">OK</button>
-          <button class="sbtn" data-id="${pt.id}" data-val="NA"     onclick="setStatut(this)">NA</button>
-          <button class="sbtn" data-id="${pt.id}" data-val="PAS OK" onclick="setStatut(this)">✗</button>
+          <button class="sbtn${actCls('OK')}" data-id="${pt.id}" data-val="OK"     onclick="setStatut(this)">OK</button>
+          <button class="sbtn${actCls('NA')}" data-id="${pt.id}" data-val="NA"     onclick="setStatut(this)">NA</button>
+          <button class="sbtn${actCls('PAS OK')}" data-id="${pt.id}" data-val="PAS OK" onclick="setStatut(this)">✗</button>
         </div>`;
     } else if (pt.type === 'oui-non') {
       statutHtml = `
         <div class="statut-btns">
-          <button class="sbtn" data-id="${pt.id}" data-val="OUI" onclick="setStatut(this)">OUI</button>
-          <button class="sbtn" data-id="${pt.id}" data-val="NON" onclick="setStatut(this)">NON</button>
+          <button class="sbtn${actCls('OUI')}" data-id="${pt.id}" data-val="OUI" onclick="setStatut(this)">OUI</button>
+          <button class="sbtn${actCls('NON')}" data-id="${pt.id}" data-val="NON" onclick="setStatut(this)">NON</button>
         </div>`;
     } else if (pt.type === 'oui-non-na') {
       statutHtml = `
         <div class="statut-btns">
-          <button class="sbtn" data-id="${pt.id}" data-val="OUI" onclick="setStatut(this)">OUI</button>
-          <button class="sbtn" data-id="${pt.id}" data-val="NON" onclick="setStatut(this)">NON</button>
-          <button class="sbtn" data-id="${pt.id}" data-val="NA"  onclick="setStatut(this)">NA</button>
+          <button class="sbtn${actCls('OUI')}" data-id="${pt.id}" data-val="OUI" onclick="setStatut(this)">OUI</button>
+          <button class="sbtn${actCls('NON')}" data-id="${pt.id}" data-val="NON" onclick="setStatut(this)">NON</button>
+          <button class="sbtn${actCls('NA')}" data-id="${pt.id}" data-val="NA"  onclick="setStatut(this)">NA</button>
         </div>`;
     }
     
     // Aspect select
     let aspectHtml = '';
     if (pt.aspect === 'neuf-bon-moyen') {
-      aspectHtml = `<select class="aspect-sel" id="asp_${pt.id}" onchange="setAspect('${pt.id}', this.value)">
-        <option value="">Aspect</option>
-        <option>NEUF</option><option>BON</option><option>MOYEN</option>
+      aspectHtml = `<select class="aspect-sel etat-sel" id="asp_${pt.id}" onchange="setAspect('${pt.id}', this.value)" aria-label="État">
+        <option value="">État</option>
+        ${ETAT_OPTIONS.map(o => `<option${cur.aspect === o ? ' selected' : ''}>${o}</option>`).join('')}
       </select>`;
     } else if (pt.aspect === 'neuf-etatneuf-bonetat') {
       aspectHtml = `<select class="aspect-sel" id="asp_${pt.id}" onchange="setAspect('${pt.id}', this.value)">
@@ -1735,15 +1866,23 @@ function buildInspection(containerId, points, startNum) {
     }
     
     html += `
-      <div class="insp-row" id="insp-row-${pt.id}">
-        <div class="insp-label"><span class="insp-num">${num}.</span>${pt.label}</div>
+      <div class="insp-row${cur.statut === 'OK' ? ' is-ok' : ''}" id="insp-row-${pt.id}">
+        <div class="insp-label"><span class="insp-num">${num}.</span>${pt.label}${pt.hint ? `<span class="insp-hint">${pt.hint}</span>` : ''}</div>
         ${statutHtml}
         ${aspectHtml}
-      </div>`;
+      </div>${pt.csReminder ? '<div class="cs-reminder" id="cs-reminder"></div>' : ''}`;
     num++;
   });
   
   container.innerHTML = html;
+  // Valeurs des autres listes (clés, nb clés, marquage)
+  points.forEach(pt => {
+    const cur = inspValues[pt.id];
+    if (!cur || !cur.aspect || pt.aspect === 'neuf-bon-moyen') return;
+    const asp = document.getElementById('asp_' + pt.id);
+    if (asp) asp.value = cur.aspect;
+  });
+  if (points.some(pt => pt.csReminder)) renderCsReminder();
 }
 
 // Points électriques à préremplir en NA pour un vélo mécanique
@@ -1892,6 +2031,14 @@ function setStatut(btn) {
   
   if (!inspValues[id]) inspValues[id] = {};
   inspValues[id].statut = val;
+
+  const row = document.getElementById('insp-row-' + id);
+  if (row) row.classList.toggle('is-ok', val === 'OK');
+  if (val !== 'OK' && isEtatPoint(id)) {
+    inspValues[id].aspect = '';
+    const asp = document.getElementById('asp_' + id);
+    if (asp) asp.value = '';
+  }
 }
 
 function setAspect(id, val) {
@@ -1921,10 +2068,10 @@ function setStatutGlobal(btn) {
 function applyFullBypassNA() {
   // Champs texte/select des étapes Caractéristiques, Électrique, Mécanique
   const fieldsToFill = [
-    'numeroCadre','marque','modele','anneeModele','kilometrage','poidsVelo',
-    'materiau','hauteurCadre','couleurPrincipale','couleurSecondaire','poidsNetBrut',
+    'numeroCadre','marque','modele','anneeModele','kilometrage',
+    'materiau','hauteurCadre','couleurPrincipale',
     'moteurMarque','moteurModele','moteurPosition','moteurCouple','assistanceType','assistanceVitesse',
-    'batterieCapacite','batteriePosition','batterieAmovible','batterieEtat','batterieCycles','display',
+    'batterieCapacite','batteriePosition','batterieAmovible','batterieCycles','display',
     'vitessesNombre','passageVitesse','derailleurType','derailleurMarque','derailleurModele',
     'freinAvantSysteme','freinAvantMarque','freinAvantModele','freinArriereSysteme','freinArriereMarque','freinArriereModele',
     'pneusModele','pneusTaille','roueTaille','fourche','bequille'
@@ -1955,6 +2102,7 @@ function goToStep(n, skipValidation) {
       alert('Merci de remplir la Date, le Technicien et le N°Objet CS.');
       return;
     }
+    if (cs !== savedCs && !csCheck(cs).ok) { showCsPopup(cs); return; }
     if (!statutGlobal) {
       alert('Merci de sélectionner le statut global du vélo.');
       return;
@@ -1990,6 +2138,9 @@ function goToStep(n, skipValidation) {
   
   // Récap
   if (n === 6) buildReview();
+  if (n === 1) maybePrefillFromCS();
+  if (n === 2) refreshBatteryPdfCard();
+  if (n === 5) renderCsReminder();
   
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -2000,7 +2151,7 @@ function jumpToFirstPasOk() {
   const firstKo = INSPECTION_POINTS.find(pt => {
     if (SCORE_EXCLUDED_POINTS.includes(pt.id)) return false;
     const v = inspValues[pt.id];
-    return v && (v.statut === 'PAS OK' || v.statut === 'NON');
+    return v && scoreCategory(pt.id, v.statut) === 'pasok';
   });
   if (!firstKo) return;
 
@@ -2027,7 +2178,7 @@ function buildReview() {
     ['N° de cadre', 'numeroCadre'], ['Marque', 'marque'], ['Modèle', 'modele'],
     ['Année', 'anneeModele'], ['Kilométrage', 'kilometrage'],
     ['Moteur', 'moteurMarque'], ['Batterie (Wh)', 'batterieCapacite'],
-    ['État batterie', 'batterieEtat'], ['Cycles', 'batterieCycles'],
+    ['Cycles', 'batterieCycles'],
   ];
   
   let html = '';
@@ -2041,9 +2192,10 @@ function buildReview() {
   let ok = 0, pasOk = 0, na = 0;
   Object.entries(inspValues).forEach(([id, v]) => {
     if (SCORE_EXCLUDED_POINTS.includes(id)) return;
-    if (v.statut === 'OK' || v.statut === 'OUI') ok++;
-    else if (v.statut === 'PAS OK' || v.statut === 'NON') pasOk++;
-    else if (v.statut === 'NA') na++;
+    const cat = scoreCategory(id, v.statut);
+    if (cat === 'ok') ok++;
+    else if (cat === 'pasok') pasOk++;
+    else if (cat === 'na') na++;
   });
   const total = INSPECTION_POINTS.length - SCORE_EXCLUDED_POINTS.length;
   // Badge PAS OK cliquable si il y en a
@@ -2076,14 +2228,14 @@ function buildPayload() {
         modele:      document.getElementById('modele').value,
         anneeModele: document.getElementById('anneeModele').value,
         kilometrage: document.getElementById('kilometrage').value,
-        poids:       document.getElementById('poidsVelo').value,
+        poids:       legacyValues.poids || '',
       },
       cadre: {
         materiau:          getSelectValue('materiau'),
         hauteur:           document.getElementById('hauteurCadre').value,
         couleurPrincipale: document.getElementById('couleurPrincipale').value,
-        couleurSecondaire: document.getElementById('couleurSecondaire').value,
-        poidsNetBrut:      document.getElementById('poidsNetBrut').value,
+        couleurSecondaire: legacyValues.couleurSecondaire || '',
+        poidsNetBrut:      legacyValues.poidsNetBrut || '',
       },
       electrique: {
         moteurMarque:        getSelectValue('moteurMarque'),
@@ -2095,7 +2247,7 @@ function buildPayload() {
         batterieCapacite:    document.getElementById('batterieCapacite').value,
         batteriePosition:    document.getElementById('batteriePosition').value,
         batterieAmovible:    document.getElementById('batterieAmovible').value,
-        batterieEtat:        document.getElementById('batterieEtat').value,
+        batterieEtat:        legacyValues.batterieEtat || '',
         batterieCycles:      document.getElementById('batterieCycles').value,
         display:             document.getElementById('display').value,
       },
@@ -2118,7 +2270,7 @@ function buildPayload() {
         bequille:            document.getElementById('bequille').value,
       }
     },
-    inspection:   inspValues,
+    inspection:   inspectionForPayload(),
     statutGlobal: statutGlobal,
     notes:        document.getElementById('notes').value,
   };
@@ -2205,6 +2357,12 @@ async function submitForm() {
 
 // Envoi via un formulaire/iframe caché — contourne totalement CORS
 function sendViaIframe(payload) {
+  return postForm({ payload: JSON.stringify(payload) });
+}
+
+// POST de champs vers Apps Script (formulaire caché → iframe). La réponse n'est pas lisible :
+// on vérifie ensuite par un GET.
+function postForm(fields) {
   return new Promise(function(resolve, reject) {
     // Nettoyer les anciens éléments
     var oldIframe = document.getElementById('_submit_iframe');
@@ -2227,12 +2385,14 @@ function sendViaIframe(payload) {
     form.target = '_submit_iframe';
     form.style.cssText = 'display:none;';
 
-    // Le payload JSON dans un champ caché
-    var input = document.createElement('input');
-    input.type  = 'hidden';
-    input.name  = 'payload';
-    input.value = JSON.stringify(payload);
-    form.appendChild(input);
+    // Les champs (payload JSON, ou PDF en base64…) dans des champs cachés
+    Object.keys(fields).forEach(function(k) {
+      var input = document.createElement('input');
+      input.type  = 'hidden';
+      input.name  = k;
+      input.value = fields[k];
+      form.appendChild(input);
+    });
 
     document.body.appendChild(form);
 
@@ -2283,11 +2443,23 @@ function validateIdentification() {
     alert('Merci de remplir la Date, le Technicien et le N°Objet CS.');
     return false;
   }
+  // Une fiche déjà dans le Sheets garde son numéro (anciennes fiches) ; sinon 5 chiffres obligatoires
+  if (cs !== savedCs && !csCheck(cs).ok) {
+    showCsPopup(cs);
+    return false;
+  }
   if (!statutGlobal) {
     alert('Merci de sélectionner le statut global du vélo.');
     return false;
   }
   return true;
+}
+
+// Identification complète, sans message (enregistrement en passant d'une étape à l'autre)
+function identificationComplete() {
+  const cs = document.getElementById('objetCS').value.trim();
+  return !!(document.getElementById('date').value && document.getElementById('technicien').value.trim()
+            && cs && statutGlobal && (cs === savedCs || csCheck(cs).ok));
 }
 
 // Envoie la fiche telle qu'elle est remplie, puis attend que le Sheets la confirme
@@ -2399,8 +2571,33 @@ function startBackgroundSave(cs) {
       showToast('✗ Enregistrement échoué : ' + err.message, true);
     } finally {
       pendingSave = null;
+      if (saveQueued) {           // la fiche a encore changé pendant l'envoi : on renvoie la dernière version
+        saveQueued = false;
+        const cur = document.getElementById('objetCS').value.trim();
+        if (cur && cur === savedCs) startBackgroundSave(cur);
+      }
     }
   })();
+}
+
+// Bouton « 💾 Enregistrer et continuer → » (toutes les étapes sauf le récapitulatif)
+let saveQueued = false;
+async function saveAndGo(n) {
+  if (currentStep === 0) return nextFromIdentification();
+  const before = currentStep;
+  goToStep(n);
+  if (currentStep === before) return;            // bloqué par une validation (ex. type de vélo)
+  if (!identificationComplete()) {
+    showToast('Fiche non enregistrée : complète d\'abord l\'identification (date, technicien, N° CS, statut)', true);
+    return;
+  }
+  const cs = document.getElementById('objetCS').value.trim();
+  if (cs === savedCs) {
+    if (pendingSave) saveQueued = true;
+    else startBackgroundSave(cs);
+  } else {
+    saveFicheManual();                           // N° pas encore enregistré : vérification avant d'écrire
+  }
 }
 
 // ── RESET ────────────────────────────────────────────────────
@@ -2418,7 +2615,16 @@ function resetForm() {
   statutGlobal = '';
   savedCs = '';
   pendingSave = null;
+  saveQueued = false;
   veloType = '';
+  legacyValues = {};
+  clearCsMarks();
+  lastPrefillCs = '';
+  setPrefillBox('');
+  batteryPdfState = { cs: '', info: null };
+  const bpStatus = document.getElementById('battery-pdf-status');
+  if (bpStatus) { bpStatus.className = 'bp-status'; bpStatus.innerHTML = ''; }
+  document.querySelectorAll('.insp-row.is-ok').forEach(r => r.classList.remove('is-ok'));
   document.querySelectorAll('.sbtn').forEach(b => b.className = 'sbtn');
   document.querySelectorAll('.sgbtn').forEach(b => b.classList.remove('active'));
   const notice = document.getElementById('statut-skip-notice');
@@ -2561,6 +2767,8 @@ document.querySelectorAll('.step-pill').forEach(pill => {
 
 // ── Wire navigation buttons via event delegation (avoids "not defined" errors) 
 document.addEventListener('click', function(e) {
+  var sbtn = e.target.closest('[data-save-goto]');
+  if (sbtn) { saveAndGo(parseInt(sbtn.getAttribute('data-save-goto'))); return; }
   var btn = e.target.closest('[data-goto]');
   if (btn) {
     var n = parseInt(btn.getAttribute('data-goto'));
@@ -2605,15 +2813,16 @@ async function loadFromSheets(cs) {
     setField('modele',       gen.modele || '');
     setField('anneeModele',  gen.anneeModele || '');
     setField('kilometrage',  gen.kilometrage || '');
-    setField('poidsVelo',    gen.poids || '');
+    legacyValues = {};
+    legacyValues.poids = gen.poids || '';
 
     // Restore cadre
     const cadre = d.caracteristiques?.cadre || {};
     setFieldSmart('materiau',          cadre.materiau || '');
     setField('hauteurCadre',           cadre.hauteur || '');
     setField('couleurPrincipale',      cadre.couleurPrincipale || '');
-    setField('couleurSecondaire',      cadre.couleurSecondaire || '');
-    setField('poidsNetBrut',           cadre.poidsNetBrut || '');
+    legacyValues.couleurSecondaire = cadre.couleurSecondaire || '';
+    legacyValues.poidsNetBrut      = cadre.poidsNetBrut || '';
 
     // Restore electrique
     const elec = d.caracteristiques?.electrique || {};
@@ -2626,7 +2835,7 @@ async function loadFromSheets(cs) {
     setField('batterieCapacite',          elec.batterieCapacite || '');
     setFieldSmart('batteriePosition',     elec.batteriePosition || '');
     setFieldSmart('batterieAmovible',     elec.batterieAmovible || '');
-    setField('batterieEtat',              elec.batterieEtat || '');
+    legacyValues.batterieEtat = elec.batterieEtat || '';
     setField('batterieCycles',            elec.batterieCycles || '');
     setField('display',                   elec.display || '');
 
@@ -2673,6 +2882,15 @@ async function loadFromSheets(cs) {
     // Restore inspection
     Object.keys(inspValues).forEach(k => delete inspValues[k]);
     Object.assign(inspValues, d.inspection || {});
+    // Anciennes valeurs Neuf / Bon / Moyen → Excellent / Très bon / Bon état
+    Object.entries(inspValues).forEach(([id, v]) => {
+      if (!isEtatPoint(id) || !v.aspect) return;
+      const legacy = ETAT_LEGACY[String(v.aspect).trim().toUpperCase()];
+      if (legacy) v.aspect = legacy;
+    });
+    clearCsMarks();
+    lastPrefillCs = '';
+    setPrefillBox('');
 
     buildInspection('insp-mec',  INSPECTION_POINTS.slice(0, 23));
     buildInspection('insp-elec', INSPECTION_POINTS.slice(23), 24);
@@ -2786,28 +3004,21 @@ async function openDraft(info) {
 //  Données : Apps Script ?action=status / ?action=setStep (v6)
 // ══════════════════════════════════════════════════════════════
 
-// Étapes, dans l'ordre. src : 'auto' = détecté, 'manuel' = case à cocher.
+// Étapes, dans l'ordre — v11 : toutes détectées automatiquement (plus de cases à cocher)
 const PARCOURS = [
-  { stage: 0, key: 'fiche',   src: 'auto',   label: "Fiche d'inspection remplie",
-    help: "Le formulaire d'inspection 53 points, pré-rempli avec le N° CS." },
-  { stage: 0, key: 'travaux', src: 'manuel', label: 'Travaux et pièces terminés',
-    help: "Les points PAS OK sont réparés et les pièces commandées sont montées." },
-  { stage: 1, key: 'photos',  src: 'auto',   label: 'Photos prises et envoyées',
+  { stage: 0, key: 'fiche',   src: 'auto', label: "Fiche d'inspection remplie",
+    help: "Le formulaire d'inspection 53 points, pré-rempli avec le N° CS et les caractéristiques CycleSoftware." },
+  { stage: 1, key: 'photos',  src: 'auto', label: 'Photos prises et envoyées',
     help: "Détecté automatiquement dès que le dossier Drive « A mettre en ligne / N° CS » contient des photos." },
-  { stage: 2, key: 'desc',    src: 'manuel', label: 'Description FR / EN rédigée',
-    help: "Texte de l'annonce, en français et en anglais." },
-  { stage: 2, key: 'prix',    src: 'manuel', label: 'Prix de vente fixé',
-    help: 'Prix de revente validé pour ce vélo.' },
-  { stage: 2, key: 'publie',  src: 'manuel', label: 'Publié en ligne',
-    help: "Annonce publiée sur le site et occasion passée dans CS. Coché automatiquement dès que le vélo apparaît sur le site." },
-  { stage: 3, key: 'vendu',   src: 'auto',   label: 'Vélo vendu',
+  { stage: 2, key: 'enligne', src: 'auto', label: 'En ligne sur le site',
+    help: "Détecté automatiquement dès que le vélo apparaît sur le site Holland Bikes (fichier de suivi mis à jour chaque matin et à son ouverture)." },
+  { stage: 2, key: 'vendu',   src: 'auto', label: 'Vélo vendu',
     help: "Détecté automatiquement quand le vélo disparaît du site (onglet « Velos vendus » du suivi). En attendant, surveille les jours en ligne et ajuste le prix." }
 ];
 const PARCOURS_STAGES = [
   { title: 'Inspection & reconditionnement', sub: 'Fiche 53 points, réparations' },
   { title: 'Photos',                          sub: 'Shooting et dossier Drive' },
-  { title: 'Fiche produit & mise en ligne',   sub: 'Description, prix, publication' },
-  { title: 'En vente',                        sub: 'Jours en ligne, prix, vente' }
+  { title: 'En ligne & vente',                sub: 'Fiche produit, jours en ligne, vente' }
 ];
 
 // Outils intégrés : un outil par étape, ouvert depuis le parcours.
@@ -2854,6 +3065,7 @@ function setGateMsg(msg, isError) {
 async function submitGate() {
   const cs = document.getElementById('gate-cs').value.trim();
   if (!cs) { setGateMsg('Saisis le N° Objet CS du vélo.', true); return; }
+  if (!csCheck(cs).ok) { setGateMsg('', false); showCsPopup(cs); return; }
   document.getElementById('gate-go').disabled = true;
   setGateMsg('Recherche du vélo ' + cs + '…');
   parcoursFromBoard = false;
@@ -2943,7 +3155,16 @@ function runParcoursAction(key) {
     return;
   }
   if (key === 'vendu') return openOnline();
-  toggleParcoursStep(key);
+  if (key === 'enligne') {
+    const url = productUrl(s);
+    if (url) window.open(url, '_blank');
+    else refreshParcours();
+  }
+}
+
+// Lien vers la fiche produit du site public (fourni par le script, v11)
+function productUrl(s) {
+  return (s && ((s.enLigne && s.enLigne.url) || (s.vendu && s.vendu.url))) || '';
 }
 
 // ── Calcul de l'avancement ───────────────────────────────────
@@ -2952,6 +3173,7 @@ function onSite(s) { return !!(s.enLigne || s.vendu); }
 function stepDone(s, key) {
   if (key === 'fiche')  return !!s.exists;
   if (key === 'vendu')  return !!s.vendu;
+  if (key === 'enligne') return onSite(s);
   if (onSite(s))        return true;
   if (key === 'photos') return !!(s.photos && s.photos.found && s.photos.count > 0);
   return !!(s.parcours && s.parcours[key]);
@@ -2967,10 +3189,11 @@ function stepDetail(s, step, done) {
     if (!s.photos || !s.photos.found) return `Aucun dossier « ${s.cs} » dans le Drive`;
     return s.photos.count > 0 ? `${s.photos.count} photo${s.photos.count > 1 ? 's' : ''} dans le dossier Drive` : 'Dossier Drive trouvé, mais vide';
   }
-  if (['travaux', 'desc', 'prix'].includes(step.key) && onSite(s) && !p[step.key + 'At'])
-    return 'Fait (vélo présent sur le site)';
-  if (step.key === 'publie' && (p.publieAuto || onSite(s)))
-    return 'Détecté sur le site' + (p.publieAt ? ' · en ligne depuis le ' + p.publieAt : '');
+  if (step.key === 'enligne') {
+    if (s.enLigne) return 'En ligne depuis le ' + (s.enLigne.depuis || '—') + ' · ' + prixTxt(s.enLigne.prix);
+    if (s.vendu)   return 'Était en ligne depuis le ' + (s.vendu.depuis || '—');
+    return "Pas encore visible sur le site";
+  }
   if (step.key === 'vendu') {
     if (s.vendu) return 'Vendu le ' + (s.vendu.dateVente || '—') + (typeof s.vendu.jours === 'number' ? ' · ' + joursTxt(s.vendu.jours, s.vendu.approx) + ' en ligne' : '');
     if (s.enLigne) return 'En ligne depuis ' + joursTxt(s.enLigne.jours, s.enLigne.approx) + ' · ' + prixTxt(s.enLigne.prix);
@@ -2983,7 +3206,8 @@ function actionLabel(s, step, done) {
   if (PARCOURS_TOOLS[step.key]) return PARCOURS_TOOLS[step.key].label;
   if (step.key === 'photos') return (s.photos && s.photos.url) ? 'Ouvrir le dossier' : 'Actualiser';
   if (step.key === 'vendu')  return 'Voir les vélos en ligne';
-  return done ? 'Décocher' : 'Marquer fait';
+  if (step.key === 'enligne') return productUrl(s) ? 'Voir la fiche produit' : 'Actualiser';
+  return '';
 }
 
 // ── Affichage ────────────────────────────────────────────────
@@ -3003,7 +3227,10 @@ function renderParcours() {
   const siteNom = (s.enLigne && s.enLigne.nom) || (s.vendu && s.vendu.nom) || '';
   const title = s.exists ? [s.marque, s.modele].filter(Boolean).join(' ') || siteNom || 'Vélo sans marque' : (siteNom || 'Vélo inconnu');
   const pill = STATUT_PILL[s.statutCode] || ['#f1f5f9', '#4a4e5c'];
-  const etape = next ? PARCOURS_STAGES[next.stage].title : (s.horsParcours ? s.statutLabel : 'Vendu');
+  const etape = s.horsParcours ? s.statutLabel
+              : !s.exists && onSite(s) ? (s.vendu ? 'Vendu' : 'En ligne')
+              : (s.etapeKey && ETAPES[s.etapeKey]) ? ETAPES[s.etapeKey].label.replace('✓ ', '')
+              : next ? PARCOURS_STAGES[next.stage].title : 'Vendu';
 
   let html = `
     ${parcoursFromBoard ? `<button class="btn btn-secondary pc-back" onclick="openBoard()">← Vélos par étape</button>` : ''}
@@ -3038,7 +3265,7 @@ function renderParcours() {
     </div>`;
 
   // Étapes
-  const stagesToShow = s.horsParcours ? [0] : [0, 1, 2, 3];
+  const stagesToShow = s.horsParcours ? [0] : [0, 1, 2];
   stagesToShow.forEach(si => {
     const stSteps = steps.filter(x => x.stage === si);
     const allDone = stSteps.every(x => stepDone(s, x.key));
@@ -3054,15 +3281,15 @@ function renderParcours() {
       <div style="margin-top:6px;">`;
     stSteps.forEach(x => {
       const done = stepDone(s, x.key);
-      const manual = x.src === 'manuel';
-      const autoDetected = ['travaux', 'desc', 'prix', 'publie'].includes(x.key) && onSite(s);
-      const canToggle = manual && s.exists && !PARCOURS_TOOLS[x.key] && !autoDetected;
+      const canToggle = false;   // v11 : plus de cases à cocher
       const check = canToggle
         ? `<button class="pc-check ${done ? 'on' : ''}" onclick="toggleParcoursStep('${x.key}')" aria-label="${done ? 'Décocher' : 'Cocher'} : ${esc(x.label)}">${done ? '✓' : ''}</button>`
         : `<span class="pc-check ${done ? 'on' : ''}" aria-hidden="true">${done ? '✓' : ''}</span>`;
       // bouton d'action : toujours pour fiche/photos/outils, pour les cases seulement si non faites
       let action = '';
-      if (x.key === 'fiche' || x.key === 'photos' || x.key === 'vendu' || PARCOURS_TOOLS[x.key]) {
+      if (x.key === 'enligne') {
+        if (productUrl(s)) action = `<a class="btn ${next && next.key === x.key ? 'btn-primary' : 'btn-secondary'}" href="${esc(productUrl(s))}" target="_blank" rel="noopener">🌐 Voir la fiche produit</a>`;
+      } else if (x.key === 'fiche' || x.key === 'photos' || x.key === 'vendu' || PARCOURS_TOOLS[x.key]) {
         const isNext = next && next.key === x.key;
         action = `<button class="btn ${isNext ? 'btn-primary' : 'btn-secondary'}" onclick="runParcoursAction('${x.key}')">${esc(actionLabel(s, x, done))}</button>`;
       } else if (canToggle && !done) {
@@ -3075,12 +3302,12 @@ function renderParcours() {
             <div class="pc-item-label">${esc(x.label)}</div>
             <div class="pc-item-detail">${esc(stepDetail(s, x, done))}</div>
           </div>
-          <span class="pc-src ${x.src === 'auto' || autoDetected ? 'auto' : ''}">${x.src === 'auto' || autoDetected ? 'Auto' : 'À cocher'}</span>
+          <span class="pc-src auto">Auto</span>
           ${action}
         </div>`;
     });
-    if (si === 3) html += saleBlock(s);
-    if (!s.exists && !onSite(s) && si > 0 && si < 3) {
+    if (si === 2) html += saleBlock(s);
+    if (!s.exists && !onSite(s) && si === 1) {
       html += `<div class="pc-meta" style="padding-top:8px;">Disponible une fois la fiche d'inspection enregistrée.</div>`;
     }
     html += `</div></div>`;
@@ -3113,6 +3340,7 @@ function renderParcours() {
       <div class="pc-links">
         ${s.sheetsUrl ? `<a class="btn btn-secondary" href="${esc(s.sheetsUrl)}" target="_blank">📊 Fiche Sheets</a>` : ''}
         ${s.photos && s.photos.url ? `<a class="btn btn-secondary" href="${esc(s.photos.url)}" target="_blank">📷 Dossier photos</a>` : ''}
+        ${productUrl(s) ? `<a class="btn btn-secondary" href="${esc(productUrl(s))}" target="_blank" rel="noopener">🌐 Fiche produit sur le site</a>` : ''}
         <button class="btn btn-secondary" onclick="refreshParcours()">↻ Actualiser</button>
         <button class="btn btn-secondary" onclick="openGate()">Changer de vélo</button>
       </div>
@@ -3197,9 +3425,10 @@ function boardNextLabel(b) {
   if (b.etapeKey === 'enligne') return b.enLigne
     ? 'Suivre le prix · en ligne depuis ' + joursTxt(b.enLigne.jours, b.enLigne.approx)
     : 'Attendre la vente';
-  const pseudo = { exists: true, parcours: b.parcours || {}, photos: b.photos || {} };
-  const next = PARCOURS.find(x => !stepDone(pseudo, x.key));
-  return next ? next.label : 'Rien à faire';
+  if (b.etapeKey === 'reco')        return 'Terminer le reconditionnement, puis les photos';
+  if (b.etapeKey === 'photos')      return 'Prendre et envoyer les photos';
+  if (b.etapeKey === 'miseenligne') return 'Publier le vélo sur le site';
+  return 'Rien à faire';
 }
 
 function renderBoard(loading) {
@@ -3477,6 +3706,373 @@ function renderOnlineList() {
         <span class="bv-chev" aria-hidden="true">›</span>
       </button>`;
   }).join('');
+}
+
+
+// ══════════════════════════════════════════════════════════════
+//  v11 — N° Objet CS (5 chiffres), scan, CycleSoftware, PDF batterie,
+//  rappel des champs CS à mettre à jour
+// ══════════════════════════════════════════════════════════════
+
+// ── N° Objet CS : exactement 5 chiffres ─────────────────────
+function csCheck(raw) {
+  const s = String(raw || '').trim();
+  if (/^\d{5}$/.test(s)) return { ok: true, cs: s };
+  const digits = s.replace(/\D/g, '');
+  return { ok: false, tooLong: digits.length > 5 };
+}
+function showCsPopup(raw) {
+  const c = csCheck(raw);
+  document.getElementById('cs-popup-title').textContent = c.tooLong ? 'Ce n\'est pas le N° Objet CS' : 'N° Objet CS invalide';
+  document.getElementById('cs-popup-text').innerHTML = c.tooLong
+    ? `« ${esc(raw)} » fait plus de 5 chiffres : c'est sûrement l'<strong>EAN</strong> (code-barres du fabricant).<br><br>Inscris le <strong>numéro d'objet CS</strong> du vélo (5 chiffres, ex. 51846), et non l'EAN.`
+    : `Le N° Objet CS doit comporter exactement <strong>5 chiffres</strong> (ex. 51846).`;
+  document.getElementById('cs-popup').classList.add('visible');
+  setTimeout(() => document.getElementById('cs-popup-ok').focus(), 30);
+}
+function closeCsPopup() {
+  document.getElementById('cs-popup').classList.remove('visible');
+}
+// Saisie dans le formulaire : alerte dès qu'on quitte le champ
+function onObjetCsChange() {
+  const el = document.getElementById('objetCS');
+  const cs = el.value.trim();
+  if (cs && cs !== savedCs && !csCheck(cs).ok) showCsPopup(cs);
+}
+
+// ── Scanner (caméra) ────────────────────────────────────────
+//  Bibliothèque html5-qrcode chargée à la demande (codes-barres 1D + QR).
+const SCAN_LIB_URLS = [
+  'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js',
+  'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js'
+];
+let scanLibPromise = null, scanner = null, scanTarget = 'gate';
+
+function loadScript(url) {
+  return new Promise((resolve, reject) => {
+    const sc = document.createElement('script');
+    sc.src = url; sc.async = true;
+    sc.onload = resolve;
+    sc.onerror = () => { sc.remove(); reject(new Error('chargement impossible')); };
+    document.head.appendChild(sc);
+  });
+}
+function loadScanLib() {
+  if (window.Html5Qrcode) return Promise.resolve();
+  if (!scanLibPromise) {
+    scanLibPromise = SCAN_LIB_URLS.reduce((p, url) => p.catch(() => loadScript(url)), Promise.reject())
+      .catch(err => { scanLibPromise = null; throw err; });
+  }
+  return scanLibPromise;
+}
+function setScanMsg(msg, isError) {
+  const el = document.getElementById('scan-msg');
+  el.textContent = msg || '';
+  el.classList.toggle('error', !!isError);
+}
+// Texte lu → N° Objet CS (« F.1-51846 » ou « 51846 »)
+function csFromScan(text) {
+  const t = String(text || '').trim();
+  const m = t.match(/-(\d{5})$/);
+  return m ? m[1] : t.replace(/\s+/g, '');
+}
+async function openScanner(target) {
+  scanTarget = target;
+  document.getElementById('scan-modal').classList.add('visible');
+  setScanMsg('Ouverture de la caméra…');
+  try {
+    await loadScanLib();
+  } catch (e) {
+    setScanMsg('Impossible de charger le scanner (connexion ?). Saisis le numéro à la main.', true);
+    return;
+  }
+  try {
+    scanner = new Html5Qrcode('scan-reader', { verbose: false, experimentalFeatures: { useBarCodeDetectorIfSupported: true } });
+    await scanner.start({ facingMode: 'environment' },
+      { fps: 10, qrbox: (w, h) => ({ width: Math.min(w * 0.9, 340), height: Math.min(h * 0.5, 160) }) },
+      onScanSuccess, () => {});
+    setScanMsg('Place le code-barres dans le cadre.');
+  } catch (e) {
+    setScanMsg('Caméra inaccessible : autorise la caméra pour ce site, ou saisis le numéro à la main.', true);
+    scanner = null;
+  }
+}
+async function stopScanner() {
+  if (scanner) {
+    try { if (scanner.isScanning) await scanner.stop(); scanner.clear(); } catch (_) {}
+    scanner = null;
+  }
+}
+async function closeScanner() {
+  await stopScanner();
+  document.getElementById('scan-modal').classList.remove('visible');
+}
+async function onScanSuccess(text) {
+  if (!scanner) return;
+  await closeScanner();
+  const cs = csFromScan(text);
+  if (!csCheck(cs).ok) { showCsPopup(cs); return; }
+  if (navigator.vibrate) navigator.vibrate(60);
+  if (scanTarget === 'form') {
+    setField('objetCS', cs);
+    onObjetCsChange();
+    refreshHeaderStatus();
+    showToast('N° Objet CS scanné : ' + cs);
+  } else {
+    setField('gate-cs', cs);
+    submitGate();
+  }
+}
+
+// ── Caractéristiques depuis CycleSoftware (Apps Script ?action=prefill) ──
+//  Seuls les champs vides sont remplis ; ils portent le repère « CS »
+//  jusqu'à ce qu'on les modifie.
+const PREFILL_MAP = [
+  ['general', 'numeroCadre', 'numeroCadre'], ['general', 'marque', 'marque'], ['general', 'modele', 'modele'],
+  ['general', 'anneeModele', 'anneeModele'], ['general', 'kilometrage', 'kilometrage'],
+  ['cadre', 'materiau', 'materiau'], ['cadre', 'hauteur', 'hauteurCadre'], ['cadre', 'couleurPrincipale', 'couleurPrincipale'],
+  ['electrique', 'moteurMarque', 'moteurMarque'], ['electrique', 'moteurModele', 'moteurModele'],
+  ['electrique', 'moteurPosition', 'moteurPosition'], ['electrique', 'moteurCouple', 'moteurCouple'],
+  ['electrique', 'assistanceType', 'assistanceType'], ['electrique', 'assistanceVitesseMax', 'assistanceVitesse'],
+  ['electrique', 'batterieCapacite', 'batterieCapacite'], ['electrique', 'batteriePosition', 'batteriePosition'],
+  ['electrique', 'batterieAmovible', 'batterieAmovible'], ['electrique', 'batterieCycles', 'batterieCycles'],
+  ['electrique', 'display', 'display'],
+  ['mecanique', 'vitessesNombre', 'vitessesNombre'], ['mecanique', 'passageVitesse', 'passageVitesse'],
+  ['mecanique', 'derailleurType', 'derailleurType'], ['mecanique', 'derailleurMarque', 'derailleurMarque'],
+  ['mecanique', 'derailleurModele', 'derailleurModele'],
+  ['mecanique', 'freinAvantSysteme', 'freinAvantSysteme'], ['mecanique', 'freinAvantMarque', 'freinAvantMarque'],
+  ['mecanique', 'freinAvantModele', 'freinAvantModele'],
+  ['mecanique', 'freinArriereSysteme', 'freinArriereSysteme'], ['mecanique', 'freinArriereMarque', 'freinArriereMarque'],
+  ['mecanique', 'freinArriereModele', 'freinArriereModele'],
+  ['mecanique', 'pneusModele', 'pneusModele'], ['mecanique', 'pneusTaille', 'pneusTaille'],
+  ['mecanique', 'roueTaille', 'roueTaille'], ['mecanique', 'fourche', 'fourche'], ['mecanique', 'bequille', 'bequille']
+];
+let lastPrefillCs = '';
+let prefillBusy = false;
+let csExtras = null;
+
+function setPrefillBox(html, cls) {
+  const box = document.getElementById('cs-prefill-box');
+  if (!box) return;
+  box.className = 'cs-prefill-box' + (cls ? ' ' + cls : '');
+  box.innerHTML = html || '';
+}
+function clearCsMarks() {
+  document.querySelectorAll('.field.from-cs').forEach(f => f.classList.remove('from-cs'));
+  document.querySelectorAll('.cs-src').forEach(b => b.remove());
+  csExtras = null;
+}
+function markFromCS(el) {
+  const field = el.closest('.field');
+  if (!field || field.classList.contains('from-cs')) return;
+  field.classList.add('from-cs');
+  const label = field.querySelector('label');
+  if (label && !label.querySelector('.cs-src')) {
+    const b = document.createElement('span');
+    b.className = 'cs-src';
+    b.textContent = 'CS';
+    b.title = 'Rempli automatiquement depuis CycleSoftware';
+    label.appendChild(b);
+  }
+  // Dès qu'on modifie le champ, la valeur n'est plus « celle de CS »
+  const unmark = () => {
+    field.classList.remove('from-cs');
+    const badge = label && label.querySelector('.cs-src');
+    if (badge) badge.remove();
+  };
+  el.addEventListener('input', unmark, { once: true });
+  el.addEventListener('change', unmark, { once: true });
+}
+function isEmptyField(el) {
+  return !el.value || (el.tagName === 'SELECT' && el.value === '');
+}
+
+function maybePrefillFromCS() {
+  const cs = document.getElementById('objetCS').value.trim();
+  if (!csCheck(cs).ok || cs === lastPrefillCs || prefillBusy) return;
+  prefillFromCS(cs, false);
+}
+
+async function prefillFromCS(cs, fresh) {
+  if (prefillBusy) return;
+  prefillBusy = true;
+  setPrefillBox('<div class="submit-spinner" style="width:18px;height:18px;border-width:2px;margin:0;"></div> Lecture des caractéristiques dans CycleSoftware…', 'muted');
+  try {
+    const resp = await fetch(`${APPS_SCRIPT_URL}?action=prefill&cs=${encodeURIComponent(cs)}${fresh ? '&fresh=1' : ''}`);
+    const r = await resp.json();
+    if (document.getElementById('objetCS').value.trim() !== cs) return; // le N° a changé entre-temps
+    lastPrefillCs = cs;
+    if (!r.success) throw new Error(r.error || 'réponse invalide');
+    if (!r.found) {
+      setPrefillBox(`Vélo ${esc(cs)} non trouvé dans CycleSoftware${r.message ? ' (' + esc(r.message) + ')' : ''} — remplis les caractéristiques à la main.
+        <button class="btn btn-secondary" onclick="prefillFromCS('${esc(cs)}', true)">↻ Réessayer</button>`, 'warn');
+      return;
+    }
+    const c = (r.prefill && r.prefill.caracteristiques) || {};
+    // Type de vélo
+    const t = (c.general || {}).typeVelo;
+    if (!veloType && (t === 'ELECTRIQUE' || t === 'MECANIQUE')) {
+      const btn = document.querySelector(`#velo-type-btns .sgbtn[data-val="${t}"]`);
+      if (btn) { setVeloType(btn); markFromCS(btn); }
+    }
+    let n = 0;
+    PREFILL_MAP.forEach(([sec, key, id]) => {
+      const val = ((c[sec] || {})[key] || '').toString().trim();
+      const el = document.getElementById(id);
+      if (!val || !el || el.disabled || !isEmptyField(el)) return;
+      if (el.tagName === 'SELECT') setFieldSmart(id, val); else setField(id, val);
+      if (!isEmptyField(el)) { markFromCS(el); n++; }
+    });
+    csExtras = r.extras || null;
+    const nom = (csExtras && csExtras.nomCS ? ` · nom dans CS : <strong>${esc(csExtras.nomCS)}</strong>` : '')
+              + (csExtras && csExtras.etatCS ? ` · état dans CS : <strong>${esc(csExtras.etatCS)}</strong>` : '');
+    setPrefillBox(n
+      ? `✓ <strong>${n} caractéristique${n > 1 ? 's' : ''}</strong> remplie${n > 1 ? 's' : ''} depuis CycleSoftware (repère <span class="cs-src" style="margin:0;">CS</span>). Vérifie-les sur le vélo.${nom}
+         <button class="btn btn-secondary" onclick="prefillFromCS('${esc(cs)}', true)">↻ Relire CS</button>`
+      : `Vélo ${esc(cs)} trouvé dans CycleSoftware, mais aucun champ vide à remplir avec ses infos.${nom}`, n ? '' : 'muted');
+  } catch (err) {
+    lastPrefillCs = cs;
+    setPrefillBox(`CycleSoftware injoignable (${esc(err.message)}) — remplis les caractéristiques à la main.
+      <button class="btn btn-secondary" onclick="prefillFromCS('${esc(cs)}', true)">↻ Réessayer</button>`, 'muted');
+  } finally {
+    prefillBusy = false;
+  }
+}
+
+// ── Rapport batterie PDF ─────────────────────────────────────
+//  Envoyé à Apps Script (POST action=uploadPdf), rangé dans le dossier
+//  photos du vélo « A mettre en ligne / N° CS » (créé s'il n'existe pas).
+const BATTERY_PDF_MAX_MB = 20;
+let batteryPdfState = { cs: '', info: null };
+let batteryPdfBusy = false;
+
+function batteryPdfStatus(html, cls) {
+  const el = document.getElementById('battery-pdf-status');
+  if (!el) return;
+  el.className = 'bp-status' + (cls ? ' ' + cls : '');
+  el.innerHTML = html || '';
+}
+function batteryPdfMemo(cs, info) {
+  return `<div class="bp-memo">📁 Emplacement : Google Drive › <code>A mettre en ligne</code> › <code>${esc(cs)}</code>${info && info.archived ? ' (dossier dans <code>Archive</code>)' : ''} › <code>${esc(cs)} - Rapport batterie.pdf</code><br>
+    Même dossier que les photos du vélo.${info && info.folderUrl ? ` <a href="${esc(info.folderUrl)}" target="_blank">Ouvrir le dossier</a>` : ''}</div>`;
+}
+function renderBatteryPdf(cs, info) {
+  if (info && info.found) {
+    batteryPdfStatus(`✓ Rapport batterie enregistré${info.date ? ' le ' + esc(info.date) : ''} — <a href="${esc(info.url)}" target="_blank">ouvrir le PDF</a>
+      ${batteryPdfMemo(cs, info)}`, 'ok');
+    document.getElementById('battery-pdf-btn').textContent = '📄 Remplacer le PDF';
+  } else {
+    batteryPdfStatus(`Aucun rapport pour l'instant.${batteryPdfMemo(cs, info)}`);
+    document.getElementById('battery-pdf-btn').textContent = '📄 Ajouter le rapport PDF';
+  }
+}
+async function fetchBatteryPdf(cs) {
+  const resp = await fetch(`${APPS_SCRIPT_URL}?action=batteryPdf&cs=${encodeURIComponent(cs)}`);
+  const r = await resp.json();
+  if (!r.success) throw new Error(r.error || 'réponse invalide');
+  return r;
+}
+async function refreshBatteryPdfCard() {
+  const card = document.getElementById('battery-pdf-card');
+  if (!card) return;
+  card.style.display = veloType === 'MECANIQUE' ? 'none' : '';
+  if (veloType === 'MECANIQUE' || batteryPdfBusy) return;
+  const cs = document.getElementById('objetCS').value.trim();
+  if (!csCheck(cs).ok && cs !== savedCs) {
+    batteryPdfStatus('Renseigne d\'abord un N° Objet CS valide (5 chiffres) : le PDF est rangé dans le dossier de ce vélo.');
+    return;
+  }
+  if (batteryPdfState.cs === cs && batteryPdfState.info) { renderBatteryPdf(cs, batteryPdfState.info); return; }
+  batteryPdfStatus('Recherche d\'un rapport déjà envoyé…');
+  try {
+    const info = await fetchBatteryPdf(cs);
+    batteryPdfState = { cs, info };
+    renderBatteryPdf(cs, info);
+  } catch (e) {
+    batteryPdfStatus(`Dossier Drive injoignable pour le moment.${batteryPdfMemo(cs, null)}`);
+  }
+}
+function readFileBase64(file) {
+  return new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(String(fr.result).replace(/^data:[^,]*,/, ''));
+    fr.onerror = () => reject(new Error('lecture du fichier impossible'));
+    fr.readAsDataURL(file);
+  });
+}
+async function onBatteryPdfChosen(input) {
+  const file = input.files && input.files[0];
+  input.value = '';                                  // permet de renvoyer le même fichier
+  if (!file || batteryPdfBusy) return;
+  const cs = document.getElementById('objetCS').value.trim();
+  if (!csCheck(cs).ok && cs !== savedCs) { showCsPopup(cs); return; }
+  if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') { batteryPdfStatus('✗ Choisis un fichier PDF.', 'error'); return; }
+  if (file.size > BATTERY_PDF_MAX_MB * 1024 * 1024) { batteryPdfStatus(`✗ PDF trop lourd (max ${BATTERY_PDF_MAX_MB} Mo).`, 'error'); return; }
+
+  batteryPdfBusy = true;
+  const sentAt = Date.now();
+  batteryPdfStatus(`Envoi de « ${esc(file.name)} » vers le dossier ${esc(cs)}…`);
+  try {
+    const data = await readFileBase64(file);
+    await postForm({ action: 'uploadPdf', cs: cs, name: file.name, data: data });
+    // Vérification : le PDF doit apparaître dans le dossier
+    let info = null;
+    for (let i = 0; i < 8; i++) {
+      await sleep(i === 0 ? 2500 : 2000);
+      try { info = await fetchBatteryPdf(cs); } catch (_) { info = null; }
+      if (info && info.found && info.date) {
+        const m = info.date.match(/^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2})$/);
+        const t = m ? new Date(+m[3], +m[2] - 1, +m[1], +m[4], +m[5]).getTime() : 0;
+        if (t >= sentAt - 120000) break;            // c'est bien le nouveau fichier
+      }
+      info = null;
+    }
+    if (!info) throw new Error('envoi non confirmé — vérifie le dossier Drive');
+    batteryPdfState = { cs, info };
+    renderBatteryPdf(cs, info);
+    showToast('✓ Rapport batterie enregistré dans le dossier ' + cs);
+    // Point 25 « Le rapport de test est fourni » → OUI s'il n'est pas déjà renseigné
+    if (!inspValues.p25 || !inspValues.p25.statut) {
+      inspValues.p25 = Object.assign(inspValues.p25 || {}, { statut: 'OUI' });
+      buildInspection('insp-elec', INSPECTION_POINTS.slice(23), 24);
+      if (veloType === 'MECANIQUE') applyVeloTypeLock();
+    }
+  } catch (err) {
+    batteryPdfStatus(`✗ Rapport non enregistré : ${esc(err.message)}${batteryPdfMemo(cs, batteryPdfState.cs === cs ? batteryPdfState.info : null)}`, 'error');
+  } finally {
+    batteryPdfBusy = false;
+  }
+}
+
+// ── Point 52 : rappel des champs à mettre à jour dans CycleSoftware ──
+function renderCsReminder() {
+  const box = document.getElementById('cs-reminder');
+  if (!box) return;
+  const v = id => (document.getElementById(id)?.value || '').trim();
+  const val = x => (x && x !== 'NA') ? x : '';
+  // Dans CS, la marque est un champ à part : le nom du modèle se termine par « / RECONDITIONNE »
+  const modele = v('modele').replace(/\s*\/\s*RECONDITIONN[EÉ]\s*$/i, '').trim();
+  const nomCS = modele ? modele + ' / RECONDITIONNE' : '';
+  const missing = t => `<span class="missing">${t}</span>`;
+  const rows = [];
+  if (veloType !== 'MECANIQUE') {
+    const wh = val(v('batterieCapacite'));
+    rows.push(['Batterie', wh ? `<span class="val">${esc(wh)}${/wh/i.test(wh) ? '' : ' Wh'}</span>` : missing('capacité non renseignée (étape Électrique)')]);
+  }
+  const km = val(v('kilometrage'));
+  rows.push(['Kilométrage', km ? `<span class="val">${esc(km)}${/km/i.test(km) ? '' : ' km'}</span>` : missing('non renseigné (étape Vélo — Général)')]);
+  rows.push(['Nom du modèle', nomCS
+    ? `<span class="val" id="cs-reminder-nom">${esc(nomCS)}</span><button type="button" class="cs-copy" onclick="copyCsName()">Copier</button>`
+    : missing('modèle non renseigné (étape Vélo — Général)')]);
+  box.innerHTML = `<div class="cs-reminder-title">À mettre à jour dans la fiche objet CS :</div>
+    <table>${rows.map(([k, h]) => `<tr><td>${k}</td><td>${h}</td></tr>`).join('')}</table>`;
+}
+function copyCsName() {
+  const t = document.getElementById('cs-reminder-nom')?.textContent || '';
+  if (!t) return;
+  (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject())
+    .then(() => showToast('Nom copié : ' + t))
+    .catch(() => showToast('Copie impossible — sélectionne le texte à la main', true));
 }
 
 // ── URL PARAM STARTUP ─────────────────────────────────────────
