@@ -1089,7 +1089,7 @@ body.online-mode #bikes-view { display: none !important; }
 <!-- ── ACCUEIL : N° CS (verre dépoli) ───────────────── -->
 <div id="cs-gate" role="dialog" aria-modal="true" aria-labelledby="gate-title">
   <div class="cs-gate-card">
-    <button class="cs-gate-close" onclick="closeGate()" aria-label="Fermer">×</button>
+    <button class="cs-gate-close" id="gate-close" onclick="closeGateIfPossible()" aria-label="Fermer">×</button>
     <div class="cs-gate-eyebrow">Second Life · EBSC</div>
     <div class="cs-gate-title" id="gate-title">Quel vélo ?</div>
     <div class="cs-gate-sub">Scanne le N° Objet CS du vélo (5 chiffres) pour voir où il en est et ce qu'il reste à faire.</div>
@@ -1101,7 +1101,6 @@ body.online-mode #bikes-view { display: none !important; }
     <div class="cs-gate-links">
       <button onclick="openBoard()">Vélos par étape</button>
       <button onclick="openOnline()">Vélos en ligne</button>
-      <button onclick="closeGate()">Fiche sans N° CS</button>
     </div>
   </div>
 </div>
@@ -1163,7 +1162,9 @@ body.online-mode #bikes-view { display: none !important; }
     <h2>Fiches enregistrées</h2>
     <button class="drafts-close" onclick="toggleDraftsPanel()">×</button>
   </div>
-  <button class="new-fiche-btn" onclick="newFiche()">+ Nouvelle fiche vierge</button>
+  <div style="margin:0 16px 12px;padding:10px 12px;border-radius:10px;background:#f1f5f9;color:var(--ink-soft);font-size:12px;line-height:1.45;">
+    Nouvelle fiche : bouton « Changer de vélo », puis scanne le N° Objet CS. L'app vérifie d'abord si la fiche existe déjà.
+  </div>
   <a href="https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit" target="_blank"
      style="display:block;text-align:center;margin:0 16px 12px;padding:10px;border-radius:10px;background:#e8f0fe;color:#1a73e8;font-weight:700;font-size:13px;text-decoration:none;">
     📊 Voir le Summary complet dans le Sheets
@@ -1223,7 +1224,8 @@ body.online-mode #bikes-view { display: none !important; }
         </div>
         <div class="field">
           <label for="objetCS">N° Objet CS <span class="req">*</span></label>
-          <input type="text" id="objetCS" inputmode="numeric" autocomplete="off" placeholder="Scanne l'étiquette CS" required onchange="onObjetCsChange()">
+          <input type="text" id="objetCS" readonly tabindex="-1" required title="Pour un autre vélo : bouton « Changer de vélo »" style="background:#f1f5f9;cursor:not-allowed;">
+          <div style="font-size:11px;color:var(--ink-soft);margin-top:4px;">Vient de l'écran « Quel vélo ? ». Pour un autre vélo : « Changer de vélo ».</div>
         </div>
       </div>
     </div>
@@ -2332,7 +2334,7 @@ async function submitForm() {
       banner.innerHTML = "✓ Données envoyées — vérifie que l'onglet <strong>" + expectedSheet + "</strong> est apparu dans le <a href='https://docs.google.com/spreadsheets/d/1WpjsysAbQNppB32dd6qV_XeR4Wi3rd5E_7zwl-6PX0E/edit' target='_blank' style='color:white;text-decoration:underline;'>Sheets</a>.";
       banner.style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      setTimeout(() => resetForm(), 10000);
+      setTimeout(() => { resetForm(); openGate(); }, 10000);
     }
   } catch (err) {
     overlay.classList.remove('visible');
@@ -2720,11 +2722,6 @@ function toggleDraftsPanel() {
   if (panel.classList.contains('open')) renderDraftsList();
 }
 
-function newFiche() {
-  if (document.getElementById('objetCS').value && !confirm('Commencer une nouvelle fiche ? La fiche actuelle ne sera pas conservée si elle n\'a pas été envoyée.')) return;
-  resetForm();
-  toggleDraftsPanel();
-}
 
 // ── INIT ─────────────────────────────────────────────────────
 // Set today's date
@@ -2929,10 +2926,12 @@ async function loadFromSheets(cs) {
     // Show success toast
     showToast(`✓ Fiche CS-${cs} chargée depuis le Sheets`);
     goToStep(6, true); // Aller directement au récapitulatif sans validation
+    return true;
 
   } catch (err) {
     overlay.classList.remove('visible');
     showToast(`✗ Impossible de charger CS-${cs} : ${err.message}`, true);
+    return false;
   }
 }
 
@@ -3042,11 +3041,21 @@ function openGate(msg) {
   input.value = '';
   setGateMsg(msg || '');
   document.getElementById('gate-go').disabled = false;
+  document.getElementById('gate-close').style.display = gateCanClose() ? '' : 'none';
   gate.classList.add('visible');
   setTimeout(() => input.focus(), 60);
 }
 function closeGate() {
   document.getElementById('cs-gate').classList.remove('visible');
+}
+// Le « Quel vélo ? » est la seule porte d'entrée : on ne le ferme pas sur un formulaire vide
+function gateCanClose() {
+  const b = document.body.classList;
+  return !!(document.getElementById('objetCS').value.trim()
+            || b.contains('parcours-mode') || b.contains('bikes-mode') || b.contains('online-mode'));
+}
+function closeGateIfPossible() {
+  if (gateCanClose()) closeGate();
 }
 function setGateMsg(msg, isError) {
   const el = document.getElementById('gate-msg');
@@ -3999,9 +4008,10 @@ function copyCsName() {
   if (cs) {
     // Le Sheets est la source de vérité quand on arrive via le lien "Modifier cette fiche".
     // On ne charge JAMAIS un brouillon local périmé dans ce cas — toujours Sheets en direct.
-    await loadFromSheets(cs);
+    const ok = await loadFromSheets(cs);
     // Clean URL without reload
     window.history.replaceState({}, '', window.location.pathname);
+    if (!ok) { resetForm(); openGate(); }
   } else {
     // Accueil : on demande d'abord le N° CS du vélo
     openGate();
