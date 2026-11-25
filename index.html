@@ -3343,6 +3343,11 @@ function actionButton(s, step, primary) {
   return `<button class="${cls}" onclick="runParcoursAction('${step.key}')">${esc(lbl)}${primary ? ' →' : ''}</button>`;
 }
 
+// Étape 5 : « En vente » tant que le vélo n'est pas vendu, « Vendu » ensuite
+function stepLabel(s, step) {
+  return step.key === 'vendu' && !s.vendu ? 'En vente' : step.label;
+}
+
 // ── Affichage ────────────────────────────────────────────────
 function renderParcours() {
   const s = parcoursStatus;
@@ -3360,7 +3365,7 @@ function renderParcours() {
   const siteNom = (s.enLigne && s.enLigne.nom) || (s.vendu && s.vendu.nom) || '';
   const title = s.exists ? [s.marque, s.modele].filter(Boolean).join(' ') || siteNom || 'Vélo sans marque' : (siteNom || 'Vélo inconnu');
   const pill = STATUT_PILL[s.statutCode] || ['#f1f5f9', '#4a4e5c'];
-  const tagTxt = { done: 'Fait', current: next && next.key === 'vendu' ? 'En vente' : 'En cours', todo: 'À venir', skip: 'Hors app' };
+  const tagTxt = { done: 'Fait', current: 'En cours', todo: 'À venir', skip: 'Hors app' };
   const dotTxt = (x, i) => state[x.key] === 'done' ? '✓' : state[x.key] === 'skip' ? '–' : String(i + 1);
 
   let html = `
@@ -3382,9 +3387,9 @@ function renderParcours() {
 
       <div class="pt-track" role="list" aria-label="Étapes du parcours">
         ${steps.map((x, i) => `
-          <div class="pt-step ${state[x.key]}" role="listitem" aria-label="${esc(x.label)} : ${tagTxt[state[x.key]]}">
+          <div class="pt-step ${state[x.key]}" role="listitem" aria-label="${esc(stepLabel(s, x))} : ${tagTxt[state[x.key]]}">
             <div class="pt-dot" aria-hidden="true">${dotTxt(x, i)}</div>
-            <div class="pt-label">${esc(x.label)}</div>
+            <div class="pt-label">${esc(stepLabel(s, x))}</div>
             <div class="pt-sub">${esc(stepDetail(s, x, state[x.key] === 'done'))}</div>
             <span class="pt-tag">${tagTxt[state[x.key]]}</span>
           </div>`).join('')}
@@ -3394,7 +3399,7 @@ function renderParcours() {
         <div class="pc-next">
           <div style="flex:1 1 260px;min-width:0;">
             <div class="pc-next-eyebrow">${next.key === 'vendu' ? 'En attente de la vente' : 'À faire maintenant'} · étape ${steps.indexOf(next) + 1} / ${steps.length}</div>
-            <div class="pc-next-label">${esc(next.label)}</div>
+            <div class="pc-next-label">${esc(stepLabel(s, next))}</div>
             <div class="pc-next-help">${esc(next.help)}</div>
             ${next.key === 'reco' && (s.pasOk || []).length ? `<div class="pc-ko-chips">${s.pasOk.map(l => `<span class="pc-ko-chip">✗ ${esc(l)}</span>`).join('')}</div>` : ''}
           </div>
@@ -3412,7 +3417,7 @@ function renderParcours() {
       <div class="pc-row ${cls}">
         <div class="pc-row-icon" aria-hidden="true">${cls === 'done' ? '✓' : steps.indexOf(x) + 1}</div>
         <div class="pc-row-body">
-          <div class="pc-row-label">${esc(x.label)}</div>
+          <div class="pc-row-label">${esc(stepLabel(s, x))}</div>
           <div class="pc-row-detail">${esc(stepDetail(s, x, cls === 'done'))}</div>
         </div>
         ${cls === 'done' && ['fiche', 'photos', 'enligne'].includes(x.key) ? actionButton(s, x, false) : ''}
