@@ -3252,6 +3252,7 @@ function editInspection(cs) {
 function runParcoursAction(key) {
   const s = parcoursStatus;
   if (!s) return;
+  if ((key === 'fiche' || key === 'reco') && s.archived) return s.sheetsUrl ? window.open(s.sheetsUrl, '_blank') : null;
   if (key === 'fiche')  return s.exists ? editInspection(s.cs) : startInspection(s.cs);
   if (key === 'reco')   return s.exists ? editInspection(s.cs) : null;
   if (PARCOURS_TOOLS[key]) return PARCOURS_TOOLS[key].open(s);
@@ -3299,6 +3300,7 @@ function stepDetail(s, step, done) {
   switch (step.key) {
     case 'fiche':
       if (stepSkipped(s, 'fiche')) return "Pas de fiche : vélo mis en ligne sans passer par l'app";
+      if (s.archived) return `Ancien Sheets · inspecté le ${s.date || '—'} par ${s.technicien || '—'}`;
       return done ? `Inspecté le ${s.date || '—'} par ${s.technicien || '—'}` : 'Pas encore de fiche pour ce numéro';
     case 'reco':
       if (stepSkipped(s, 'reco')) return 'Non suivi dans l\'app';
@@ -3322,9 +3324,9 @@ function stepDetail(s, step, done) {
   return '';
 }
 function actionLabel(s, step) {
-  if (step.key === 'fiche')   return s.exists ? 'Modifier la fiche' : "Démarrer l'inspection";
+  if (step.key === 'fiche')   return s.archived ? "Voir l'ancienne fiche" : s.exists ? 'Modifier la fiche' : "Démarrer l'inspection";
   if (PARCOURS_TOOLS[step.key]) return PARCOURS_TOOLS[step.key].label;
-  if (step.key === 'reco')    return s.exists ? 'Ouvrir la fiche' : '';
+  if (step.key === 'reco')    return s.archived ? "Voir l'ancienne fiche" : s.exists ? 'Ouvrir la fiche' : '';
   if (step.key === 'photos')  return (s.photos && s.photos.url) ? 'Ouvrir le dossier' : 'Actualiser';
   if (step.key === 'enligne') return productUrl(s) ? 'Voir la fiche produit' : 'Actualiser';
   if (step.key === 'vendu')   return 'Voir les vélos en ligne';
@@ -3334,6 +3336,8 @@ function actionButton(s, step, primary) {
   const lbl = actionLabel(s, step);
   if (!lbl) return '';
   const cls = 'btn ' + (primary ? 'btn-primary' : 'btn-secondary');
+  if ((step.key === 'fiche' || step.key === 'reco') && s.archived && s.sheetsUrl)
+    return `<a class="${cls}" href="${esc(s.sheetsUrl)}" target="_blank" rel="noopener">${esc(lbl)}</a>`;
   if (step.key === 'enligne' && productUrl(s))
     return `<a class="${cls}" href="${esc(productUrl(s))}" target="_blank" rel="noopener">${esc(lbl)}</a>`;
   return `<button class="${cls}" onclick="runParcoursAction('${step.key}')">${esc(lbl)}${primary ? ' →' : ''}</button>`;
@@ -3367,7 +3371,9 @@ function renderParcours() {
 
     <div class="card">
       <div class="pc-head">
-        <div class="pc-meta" style="margin:0;">${s.exists
+        <div class="pc-meta" style="margin:0;">${s.archived
+          ? `Fiche dans l'<strong>ancien Sheets</strong> (lecture seule) · inspecté le ${esc(s.date || '—')} par ${esc(s.technicien || '—')}`
+          : s.exists
           ? `Inspecté le ${esc(s.date || '—')} par ${esc(s.technicien || '—')}${s.typeVelo ? ' · ' + esc(s.typeVelo) : ''}`
           : onSite(s) ? "Vélo présent sur le site, sans fiche d'inspection dans l'app." : "Aucune fiche d'inspection pour ce numéro."}
           · <strong>${doneCount} / ${steps.length}</strong> étapes faites</div>
@@ -3444,7 +3450,8 @@ function renderParcours() {
     <div class="card">
       <div class="card-title">Liens</div>
       <div class="pc-links">
-        ${s.sheetsUrl ? `<a class="btn btn-secondary" href="${esc(s.sheetsUrl)}" target="_blank">📊 Fiche Sheets</a>` : ''}
+        ${s.sheetsUrl ? `<a class="btn btn-secondary" href="${esc(s.sheetsUrl)}" target="_blank">📊 ${s.archived ? 'Ancienne fiche (Sheets)' : 'Fiche Sheets'}</a>` : ''}
+        ${s.archived ? `<button class="btn btn-secondary" onclick="startInspection('${esc(s.cs)}')" title="Créer une fiche dans le Sheets actuel (elle remplacera l'ancienne dans l'app)">＋ Refaire une fiche</button>` : ''}
         ${s.photos && s.photos.url ? `<a class="btn btn-secondary" href="${esc(s.photos.url)}" target="_blank">📷 Dossier photos</a>` : ''}
         ${productUrl(s) ? `<a class="btn btn-secondary" href="${esc(productUrl(s))}" target="_blank" rel="noopener">🌐 Fiche produit sur le site</a>` : ''}
         <button class="btn btn-secondary" onclick="refreshParcours()">↻ Actualiser</button>
@@ -3594,6 +3601,7 @@ function renderBoardList() {
         <span class="bv-tags">
           ${b.pasOk > 0 && b.etapeKey === 'reco' ? `<span class="bv-ko">${b.pasOk} PAS OK</span>` : ''}
           ${b.hasFiche === false ? '<span class="ol-tag">pas de fiche</span>' : ''}
+          ${b.archived ? '<span class="ol-tag" title="Fiche dans l\'ancien Sheets (lecture seule)">ancienne fiche</span>' : ''}
           ${b.enLigne ? `<span class="ol-days ${joursClass(b.enLigne.jours)}">${esc(joursTxt(b.enLigne.jours, b.enLigne.approx))}</span>` : ''}
           <span class="pc-pill" style="background:${et.bg};color:${et.fg};">${esc(etLabel)}</span>
         </span>
@@ -3786,7 +3794,7 @@ function renderOnlineList() {
         <span><span class="ol-days gris">${esc(typeof b.jours === 'number' ? 'vendu en ' + joursTxt(b.jours, b.approx) : 'durée inconnue')}</span></span>
         <span class="bv-tags">
           ${b.nbChangements ? `<span class="ol-tag down">prix modifié ×${b.nbChangements}</span>` : ''}
-          ${b.hasFiche ? '' : '<span class="ol-tag">pas de fiche</span>'}
+          ${b.hasFiche ? (b.ficheArchive ? '<span class="ol-tag" title="Fiche dans l\'ancien Sheets (lecture seule)">ancienne fiche</span>' : '') : '<span class="ol-tag">pas de fiche</span>'}
         </span>
         <span class="bv-chev" aria-hidden="true">›</span>
       </button>`).join('');
@@ -3807,7 +3815,7 @@ function renderOnlineList() {
         <span><span class="ol-days ${joursClass(b.jours)}">${esc(joursTxt(b.jours, b.approx))}</span></span>
         <span class="bv-tags">
           ${b.nbChangements ? `<span class="ol-tag down">prix modifié ×${b.nbChangements}</span>` : ''}
-          ${b.hasFiche ? '' : '<span class="ol-tag">pas de fiche</span>'}
+          ${b.hasFiche ? (b.ficheArchive ? '<span class="ol-tag" title="Fiche dans l\'ancien Sheets (lecture seule)">ancienne fiche</span>' : '') : '<span class="ol-tag">pas de fiche</span>'}
         </span>
         <span class="bv-chev" aria-hidden="true">›</span>
       </button>`;
