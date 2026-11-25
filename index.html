@@ -1044,19 +1044,7 @@ body.online-mode #bikes-view { display: none !important; }
 .cs-prefill-box .btn { padding: 6px 12px; font-size: 12px; margin-left: 8px; vertical-align: middle; }
 .cs-prefill-box .submit-spinner { display: inline-block; vertical-align: middle; margin-right: 8px !important; }
 
-/* N° CS + bouton scan */
-.cs-input-row { display: flex; gap: 8px; align-items: stretch; }
-.cs-input-row input { flex: 1; min-width: 0; }
-.btn-scan {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 10px 14px; border-radius: 8px; border: 1.5px solid var(--border);
-  background: #fff; color: #00335b; font-family: var(--sans); font-size: 13px; font-weight: 700;
-  cursor: pointer; white-space: nowrap;
-}
-.btn-scan:hover { border-color: #00335b; }
-.gate-scan { width: 100%; margin-top: 10px; padding: 12px; border-radius: 14px; background: rgba(255,255,255,0.7); }
-
-/* Fenêtres (N° CS invalide, scanner) */
+/* Fenêtre N° CS invalide */
 .sl-modal {
   position: fixed; inset: 0; z-index: 1500; display: none;
   align-items: center; justify-content: center; padding: 20px;
@@ -1071,11 +1059,6 @@ body.online-mode #bikes-view { display: none !important; }
 .sl-modal-text { font-size: 14px; color: var(--ink); line-height: 1.5; }
 .sl-modal-text strong { color: var(--warn); }
 .sl-modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }
-#scan-reader { width: 100%; min-height: 220px; border-radius: 12px; overflow: hidden; background: #0b1b2b; }
-#scan-reader video { width: 100% !important; border-radius: 12px; }
-.scan-msg { margin-top: 10px; font-size: 13px; color: var(--ink-soft); min-height: 18px; }
-.scan-msg.error { color: var(--warn); font-weight: 600; }
-
 /* Rapport batterie PDF */
 .bp-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .bp-row input[type="file"] { display: none; }
@@ -1109,11 +1092,10 @@ body.online-mode #bikes-view { display: none !important; }
     <button class="cs-gate-close" onclick="closeGate()" aria-label="Fermer">×</button>
     <div class="cs-gate-eyebrow">Second Life · EBSC</div>
     <div class="cs-gate-title" id="gate-title">Quel vélo ?</div>
-    <div class="cs-gate-sub">Saisis ou scanne le N° Objet CS du vélo (5 chiffres) pour voir où il en est et ce qu'il reste à faire.</div>
+    <div class="cs-gate-sub">Scanne le N° Objet CS du vélo (5 chiffres) pour voir où il en est et ce qu'il reste à faire.</div>
     <label for="gate-cs" class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);">N° Objet CS</label>
     <input id="gate-cs" class="cs-gate-input" inputmode="numeric" autocomplete="off" placeholder="N° CS"
            onkeydown="if(event.key==='Enter'){event.preventDefault();submitGate();}">
-    <button type="button" class="btn-scan gate-scan" onclick="openScanner('gate')">📷 Scanner le numéro du vélo</button>
     <button id="gate-go" class="cs-gate-go" onclick="submitGate()">Continuer →</button>
     <div id="gate-msg" class="cs-gate-msg" aria-live="polite"></div>
     <div class="cs-gate-links">
@@ -1131,19 +1113,6 @@ body.online-mode #bikes-view { display: none !important; }
     <div class="sl-modal-text" id="cs-popup-text"></div>
     <div class="sl-modal-actions">
       <button class="btn btn-primary" id="cs-popup-ok" onclick="closeCsPopup()">Compris</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── SCANNER ────────────────────────────────────── -->
-<div id="scan-modal" class="sl-modal" role="dialog" aria-modal="true" aria-labelledby="scan-title">
-  <div class="sl-modal-card">
-    <div class="sl-modal-title" id="scan-title">Scanner le numéro du vélo</div>
-    <div class="sl-modal-text" style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;">Vise l'étiquette CycleSoftware du vélo (N° Objet CS), pas le code-barres EAN du fabricant.</div>
-    <div id="scan-reader"></div>
-    <div class="scan-msg" id="scan-msg"></div>
-    <div class="sl-modal-actions">
-      <button class="btn btn-secondary" onclick="closeScanner()">Annuler</button>
     </div>
   </div>
 </div>
@@ -1254,10 +1223,7 @@ body.online-mode #bikes-view { display: none !important; }
         </div>
         <div class="field">
           <label for="objetCS">N° Objet CS <span class="req">*</span></label>
-          <div class="cs-input-row">
-            <input type="text" id="objetCS" inputmode="numeric" autocomplete="off" placeholder="5 chiffres" required onchange="onObjetCsChange()">
-            <button type="button" class="btn-scan" onclick="openScanner('form')" title="Scanner le numéro du vélo">📷 Scanner</button>
-          </div>
+          <input type="text" id="objetCS" inputmode="numeric" autocomplete="off" placeholder="Scanne l'étiquette CS" required onchange="onObjetCsChange()">
         </div>
       </div>
     </div>
@@ -3088,7 +3054,9 @@ function setGateMsg(msg, isError) {
   el.classList.toggle('error', !!isError);
 }
 async function submitGate() {
-  const cs = document.getElementById('gate-cs').value.trim();
+  const input = document.getElementById('gate-cs');
+  input.value = csFromScan(input.value);
+  const cs = input.value.trim();
   if (!cs) { setGateMsg('Saisis le N° Objet CS du vélo.', true); return; }
   if (!csCheck(cs).ok) { setGateMsg('', false); showCsPopup(cs); return; }
   document.getElementById('gate-go').disabled = true;
@@ -3761,92 +3729,16 @@ function closeCsPopup() {
 // Saisie dans le formulaire : alerte dès qu'on quitte le champ
 function onObjetCsChange() {
   const el = document.getElementById('objetCS');
+  el.value = csFromScan(el.value);
   const cs = el.value.trim();
   if (cs && cs !== savedCs && !csCheck(cs).ok) showCsPopup(cs);
 }
 
-// ── Scanner (caméra) ────────────────────────────────────────
-//  Bibliothèque html5-qrcode chargée à la demande (codes-barres 1D + QR).
-const SCAN_LIB_URLS = [
-  'https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js',
-  'https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js'
-];
-let scanLibPromise = null, scanner = null, scanTarget = 'gate';
-
-function loadScript(url) {
-  return new Promise((resolve, reject) => {
-    const sc = document.createElement('script');
-    sc.src = url; sc.async = true;
-    sc.onload = resolve;
-    sc.onerror = () => { sc.remove(); reject(new Error('chargement impossible')); };
-    document.head.appendChild(sc);
-  });
-}
-function loadScanLib() {
-  if (window.Html5Qrcode) return Promise.resolve();
-  if (!scanLibPromise) {
-    scanLibPromise = SCAN_LIB_URLS.reduce((p, url) => p.catch(() => loadScript(url)), Promise.reject())
-      .catch(err => { scanLibPromise = null; throw err; });
-  }
-  return scanLibPromise;
-}
-function setScanMsg(msg, isError) {
-  const el = document.getElementById('scan-msg');
-  el.textContent = msg || '';
-  el.classList.toggle('error', !!isError);
-}
-// Texte lu → N° Objet CS (« F.1-51846 » ou « 51846 »)
+// ── Lecture d'un N° scanné à la scanette (« F.1-51846 » ou « 51846 ») ──
 function csFromScan(text) {
   const t = String(text || '').trim();
   const m = t.match(/-(\d{5})$/);
   return m ? m[1] : t.replace(/\s+/g, '');
-}
-async function openScanner(target) {
-  scanTarget = target;
-  document.getElementById('scan-modal').classList.add('visible');
-  setScanMsg('Ouverture de la caméra…');
-  try {
-    await loadScanLib();
-  } catch (e) {
-    setScanMsg('Impossible de charger le scanner (connexion ?). Saisis le numéro à la main.', true);
-    return;
-  }
-  try {
-    scanner = new Html5Qrcode('scan-reader', { verbose: false, experimentalFeatures: { useBarCodeDetectorIfSupported: true } });
-    await scanner.start({ facingMode: 'environment' },
-      { fps: 10, qrbox: (w, h) => ({ width: Math.min(w * 0.9, 340), height: Math.min(h * 0.5, 160) }) },
-      onScanSuccess, () => {});
-    setScanMsg('Place le code-barres dans le cadre.');
-  } catch (e) {
-    setScanMsg('Caméra inaccessible : autorise la caméra pour ce site, ou saisis le numéro à la main.', true);
-    scanner = null;
-  }
-}
-async function stopScanner() {
-  if (scanner) {
-    try { if (scanner.isScanning) await scanner.stop(); scanner.clear(); } catch (_) {}
-    scanner = null;
-  }
-}
-async function closeScanner() {
-  await stopScanner();
-  document.getElementById('scan-modal').classList.remove('visible');
-}
-async function onScanSuccess(text) {
-  if (!scanner) return;
-  await closeScanner();
-  const cs = csFromScan(text);
-  if (!csCheck(cs).ok) { showCsPopup(cs); return; }
-  if (navigator.vibrate) navigator.vibrate(60);
-  if (scanTarget === 'form') {
-    setField('objetCS', cs);
-    onObjetCsChange();
-    refreshHeaderStatus();
-    showToast('N° Objet CS scanné : ' + cs);
-  } else {
-    setField('gate-cs', cs);
-    submitGate();
-  }
 }
 
 // ── Caractéristiques depuis CycleSoftware (Apps Script ?action=prefill) ──
