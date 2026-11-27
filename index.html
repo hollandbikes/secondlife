@@ -1389,7 +1389,8 @@ select.adm-occ-ko { background: #ffebee !important; border-color: #ef5350 !impor
             <div class="adm-help">Vérifiable dans CS › plus › Livraisons internes (recherche par n° de vélo).</div></div>
           <div class="field"><label for="adm_factureBli">Facturation BLI (n° facture)</label><input type="text" id="adm_factureBli" data-adm="factureBli" placeholder="ex. 20007533">
             <div class="adm-help">Colonne « Facture » de la livraison interne dans CS.</div></div>
-          <div class="field"><label for="adm_filiale">Filiale CS</label><input type="text" id="adm_filiale" data-adm="filiale"></div>
+          <div class="field"><label for="adm_filiale">Filiale CS</label><input type="text" id="adm_filiale" data-adm="filiale">
+            <div class="adm-check" id="adm-filiale-check"></div></div>
           <div class="field"><label for="adm_emplacement">Emplacement CS</label><input type="text" id="adm_emplacement" data-adm="emplacement">
             <div class="adm-help">L'API CS ne renvoie pas l'emplacement : à recopier depuis CS.</div></div>
         </div>
@@ -4121,6 +4122,7 @@ function resetAdmin() {
   admLoadedCs = '';
   const st = document.getElementById('adm-status'); if (st) st.innerHTML = '';
   const nh = document.getElementById('adm-navette-help'); if (nh) nh.innerHTML = '';
+  const fc = document.getElementById('adm-filiale-check'); if (fc) { fc.className = 'adm-check'; fc.textContent = ''; }
 }
 
 // Couleurs, contrôle code-barres, aides, compteur
@@ -4199,6 +4201,12 @@ async function loadAdmin(cs, fresh) {
       n += admFill('codeBarre', c.codeBarre, 'CS');
       n += admFill('tva', c.tva, c.tvaSource === 'regle' ? 'Règle' : 'CS');
       n += admFill('filiale', c.filiale, 'CS');
+      const fc = document.getElementById('adm-filiale-check');
+      if (fc) {
+        fc.className = 'adm-check' + (c.enFilialeEBSC === true ? ' ok' : c.enFilialeEBSC === false ? ' ko' : '');
+        fc.textContent = c.enFilialeEBSC === true ? '✓ Le vélo est bien en filiale EBSC dans CS'
+          : c.enFilialeEBSC === false ? `⚠ Dans CS, le vélo est encore chez ${c.filiale} : le BLI de transfert vers EBSC n'est pas fait` : '';
+      }
       n += admFill('emplacement', c.emplacement, 'CS');
     } else msgs.push(r.csError ? 'CycleSoftware injoignable (' + esc(r.csError) + ')' : esc(r.csMessage || 'Vélo introuvable dans CycleSoftware'));
 

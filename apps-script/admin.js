@@ -41,10 +41,29 @@ const ADMIN_FIELDS = [
 ];
 const ADMIN_ROWS = ADMIN_FIELDS.length + 1;   // titre + champs
 
-// Filiales CS : store_id → nom (à compléter quand on connaît les numéros)
+// Filiales CS : noms lus dans CycleSoftware (horaires par magasin → store_id + store_name),
+// cache 24 h. Constaté le 27/11 : 2 = EBSC (vélos transférés), 6 = boutique d'origine HB17
+// (81460, BLI pas encore fait). Ce tableau ne sert que si l'API ne répond pas.
 const CS_STORE_NAMES = {
-  // 1: 'Holland Bikes Paris 17',
+  2: 'EBSC'
 };
+function csStoreNames_() {
+  return cached('cs_stores', 86400, function() {
+    var names = {};
+    try {
+      var r = csFetch_('/api/v2/workshop/trading-hours-per-store.json', { day_count: 1 });
+      var list = r.json ? (Array.isArray(r.json) ? r.json : (r.json.data || [])) : [];
+      list.forEach(function(x) { if (x && x.store_id !== undefined && x.store_name) names[x.store_id] = String(x.store_name).trim(); });
+      if (!list.length) Logger.log('csStoreNames_ : HTTP ' + r.status + ' ' + String(r.text).substring(0, 300));
+    } catch (e) { Logger.log('csStoreNames_ : ' + e.message); }
+    return names;
+  }, false);
+}
+// Test depuis l'éditeur : liste des filiales CS
+function testFilialesCS() {
+  cacheRemove('cs_stores');
+  Logger.log(JSON.stringify(csStoreNames_(), null, 1));
+}
 
 // ============================================================
 //  POINT D'ENTRÉE — doGet(action=admin)
@@ -136,7 +155,11 @@ function csAdminFromStock_(cs, raw) {
 
   // Filiale
   var storeId = so.store_id !== undefined ? so.store_id : (o.store_id !== undefined ? o.store_id : '');
-  var filiale = storeId === '' ? '' : (CS_STORE_NAMES[storeId] || ('Filiale CS n° ' + storeId));
+  var stores = storeId === '' ? {} : csStoreNames_();
+  var filiale = storeId === '' ? '' : (stores[storeId] || CS_STORE_NAMES[storeId] || ('Filiale CS n° ' + storeId));
+  // Le vélo est-il déjà dans la filiale EBSC dans CS ? (sinon : BLI de transfert pas fait)
+  var ebscId = Object.keys(stores).filter(function(k) { return /EBSC|MONTEVRAIN|MONTÉVRAIN/i.test(stores[k]); })[0] || '2';
+  var enFilialeEBSC = storeId === '' ? null : String(storeId) === String(ebscId);
 
   // TVA et emplacement : absents de l'objet stock (vérifié le 27/11 sur 61402 et 82036).
   // Recherche par nom de clé gardée au cas où CS les ajoute.
@@ -166,7 +189,7 @@ function csAdminFromStock_(cs, raw) {
   return {
     statutCS: statutCS,
     codeBarre: barcode, codeBarreOk: codeBarreOk,
-    storeId: storeId, filiale: filiale,
+    storeId: storeId, filiale: filiale, enFilialeEBSC: enFilialeEBSC,
     garantie: garantie,
     tva: tva, tvaSource: tvaSource,
     emplacement: empl ? empl.v : '',
