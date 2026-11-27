@@ -293,7 +293,7 @@ function readAdminBlock_(sheet) {
 // ============================================================
 function testEmplacementCS() {
   var numeros = ['82036'];
-  var garder = /locat|emplac|stock|store|warehouse|shelf|bin|position|quantity|object_id|^data\.\d+\.barcode$/i;
+  var garder = /locat|emplac|stock|store|warehouse|shelf|bin|position|quantity|custom_propert|object_id|^data\.\d+\.barcode$/i;
   var jeter  = /price|cost|cents|purchase|amount|customer|email|phone|street|city|postcode|description/i;
   function aplatir(x, pfx, out) {
     out = out || [];
@@ -315,6 +315,14 @@ function testEmplacementCS() {
     Logger.log('================ VÉLO ' + cs + ' ================');
     essai('Article (articledata v4)', '/api/v4/articledata/ecommerce.json', { barcode: cs });
     essai('Stockinfo', '/app/api/whm/stockinfo/' + cs + '/', {});
-    essai('Stock POS', '/api/v2/warehouse/stock/pos-items.json', {});
+    // Propriété libre custom_property_5 : sa valeur (emplacement ?)
+    try {
+      var a = csFetch_('/api/v4/articledata/ecommerce.json', { barcode: cs });
+      var art = a.json && (a.json.data || a.json)[0];
+      var props = (art && art.properties) || {};
+      Object.keys(props).filter(function(k) { return /custom/i.test(k); }).forEach(function(k) {
+        Logger.log('── ' + k + ' = ' + JSON.stringify(props[k]));
+      });
+    } catch (e) { Logger.log('custom_property → ERREUR ' + e.message); }
   });
 }
