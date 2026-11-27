@@ -387,7 +387,7 @@ function testCS() {
 //  il reste dans l'éditeur, rien n'est renvoyé à la webapp.
 // ============================================================
 function explorerAdminCS() {
-  var numeros = ['61402'];   // ← mettre ici 2 ou 3 N° Objet CS
+  var numeros = ['61402', '82036'];   // ← mettre ici 2 ou 3 N° Objet CS
 
   // Aplatit un objet JSON en lignes « chemin = valeur »
   function aplatir(x, pfx, out) {
@@ -415,4 +415,9 @@ function explorerAdminCS() {
   essai('Liste des enums', '/api/v1/common/enum.json');
   essai('Types de garantie', '/api/v1/common/enum/warranty_types.json');
   essai('Codes TVA', '/api/v4/articledata/codelist/vat.json');
+
+  // Factures : transactions du 26/11/2026 (jour du BLI 676607 → facture 20007533 pour le 82036)
+  // Le journal montre si les factures internes (BLI) apparaissent, et sous quelle forme.
+  essai('Transactions 26/11/2026', '/api/v3/salesdata/transactions.json',
+        { start_date: '2026-11-26', end_date: '2026-11-26' });
 }
