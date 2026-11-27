@@ -44,8 +44,9 @@ const ADMIN_ROWS = ADMIN_FIELDS.length + 1;   // titre + champs
 // Filiales CS : noms lus dans CycleSoftware (horaires par magasin → store_id + store_name),
 // cache 24 h. Constaté le 27/11 : 2 = EBSC (vélos transférés), 6 = boutique d'origine HB17
 // (81460, BLI pas encore fait). Ce tableau ne sert que si l'API ne répond pas.
-const CS_STORE_NAMES = {
-  2: 'EBSC'
+const CS_STORE_NAMES = {   // relevé dans CS le 27/11/2026 (testFilialesCS)
+  1: 'Holland Bikes Lyon', 2: 'EBSC', 3: 'Atelier Paris 15', 4: 'Holland Bikes Paris 15',
+  5: 'Holland Bikes Paris 05', 6: 'Holland Bikes Paris 17', 7: 'Holland Bikes Webshop', 9: 'Holland Bikes Lagny'
 };
 function csStoreNames_() {
   return cached('cs_stores', 86400, function() {
