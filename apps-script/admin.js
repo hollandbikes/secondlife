@@ -283,3 +283,38 @@ function readAdminBlock_(sheet) {
   out.prixRepriseRenseigne = vals[ADMIN_FIELDS.map(function(f) { return f.key; }).indexOf('prixReprise') + 1][1] !== '';
   return out;
 }
+
+// ============================================================
+//  TEST — où CS range-t-il « Emplacement du stock » ?
+//  L'objet stock ne le contient pas (vérifié le 27/11). On essaie les autres
+//  routes de l'API qui parlent d'emplacement, et on n'affiche QUE les clés
+//  liées au stock / magasin / emplacement (pas de prix, pas de clients).
+//  Mettre dans « numeros » un vélo dont l'emplacement est rempli dans CS.
+// ============================================================
+function testEmplacementCS() {
+  var numeros = ['82036'];
+  var garder = /locat|emplac|stock|store|warehouse|shelf|bin|position|quantity|object_id|^data\.\d+\.barcode$/i;
+  var jeter  = /price|cost|cents|purchase|amount|customer|email|phone|street|city|postcode|description/i;
+  function aplatir(x, pfx, out) {
+    out = out || [];
+    if (x === null || typeof x !== 'object') { out.push(pfx + ' = ' + JSON.stringify(x)); return out; }
+    Object.keys(x).forEach(function(k) { aplatir(x[k], pfx ? pfx + '.' + k : k, out); });
+    return out;
+  }
+  function essai(titre, path, params) {
+    try {
+      var r = csFetch_(path, params);
+      var lignes = r.json ? aplatir(r.json, '').filter(function(l) {
+        var k = l.split(' = ')[0];
+        return garder.test(k) && !jeter.test(k);
+      }) : [String(r.text).substring(0, 300)];
+      Logger.log('── ' + titre + ' → HTTP ' + r.status + '\n' + lignes.slice(0, 120).join('\n'));
+    } catch (e) { Logger.log('── ' + titre + ' → ERREUR ' + e.message); }
+  }
+  numeros.forEach(function(cs) {
+    Logger.log('================ VÉLO ' + cs + ' ================');
+    essai('Article (articledata v4)', '/api/v4/articledata/ecommerce.json', { barcode: cs });
+    essai('Stockinfo', '/app/api/whm/stockinfo/' + cs + '/', {});
+    essai('Stock POS', '/api/v2/warehouse/stock/pos-items.json', {});
+  });
+}
