@@ -378,3 +378,41 @@ function testCS() {
   if (raw.found) Logger.log('PRÉ-REMPLISSAGE : ' + JSON.stringify(csMapToFiche_(cs, raw), null, 1));
   else Logger.log(raw.message);
 }
+// ============================================================
+//  EXPLORATION « Administration Reco » (27/11/2026)
+//  À lancer UNE fois depuis l'éditeur (menu Exécuter) avec 2 ou 3 vrais N° CS
+//  de vélos reco (un en TVA 20 %, un en TVA marge, un déjà transféré à EBSC).
+//  Le journal liste tous les champs renvoyés par CS (garantie, TVA, emplacement,
+//  filiale, prix de reprise…) pour caler la synchro. Il peut contenir des prix :
+//  il reste dans l'éditeur, rien n'est renvoyé à la webapp.
+// ============================================================
+function explorerAdminCS() {
+  var numeros = ['61402'];   // ← mettre ici 2 ou 3 N° Objet CS
+
+  // Aplatit un objet JSON en lignes « chemin = valeur »
+  function aplatir(x, pfx, out) {
+    out = out || [];
+    if (x === null || typeof x !== 'object') { out.push(pfx + ' = ' + JSON.stringify(x)); return out; }
+    var ks = Object.keys(x);
+    if (!ks.length) out.push(pfx + ' = ' + (Array.isArray(x) ? '[]' : '{}'));
+    ks.forEach(function(k) { aplatir(x[k], pfx ? pfx + '.' + k : k, out); });
+    return out;
+  }
+  function essai(titre, path, params) {
+    try {
+      var r = csFetch_(path, params);
+      Logger.log('── ' + titre + ' (' + path + ') → HTTP ' + r.status);
+      if (r.json) Logger.log(aplatir(r.json, '').slice(0, 400).join('\n'));
+      else Logger.log(String(r.text).substring(0, 1500));
+    } catch (e) { Logger.log('── ' + titre + ' → ERREUR ' + e.message); }
+  }
+
+  numeros.forEach(function(cs) {
+    Logger.log('================ VÉLO ' + cs + ' ================');
+    essai('Objet stock', '/api/v1/stock-objects/' + cs + '.json');
+  });
+  // Listes de codes : types de garantie, codes TVA, liste des enums disponibles
+  essai('Liste des enums', '/api/v1/common/enum.json');
+  essai('Types de garantie', '/api/v1/common/enum/warranty_types.json');
+  essai('Codes TVA', '/api/v4/articledata/codelist/vat.json');
+}
