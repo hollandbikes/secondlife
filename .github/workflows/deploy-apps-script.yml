@@ -20,7 +20,11 @@ jobs:
           test -f apps-script/summary.js || { echo "summary.js absent : envoi annulé"; exit 1; }
           test -f apps-script/appsscript.json || { echo "appsscript.json absent : envoi annulé"; exit 1; }
       - name: Identifiants clasp
-        run: echo '${{ secrets.CLASPRC_JSON }}' > ~/.clasprc.json
+        env:
+          CLASPRC: ${{ secrets.CLASPRC_JSON }}
+        run: |
+          printf '%s' "$CLASPRC" > ~/.clasprc.json
+          python3 -c "import json,os;d=json.load(open(os.path.expanduser('~/.clasprc.json')));print('Identifiants lus, cles :', ', '.join(d.keys()))"
       - name: Envoyer le code
         working-directory: apps-script
         run: clasp push --force
