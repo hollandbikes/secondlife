@@ -1348,7 +1348,7 @@ select.adm-occ-ko { background: #ffebee !important; border-color: #ef5350 !impor
     </div>
 
     <details class="card adm-card" id="adm-card">
-      <summary><span class="card-title">🗂 Administration Reco</span><span class="adm-count" id="adm-count"></span></summary>
+      <summary><span class="card-title">Administration Reco</span><span class="adm-count" id="adm-count"></span></summary>
       <div class="adm-body">
         <div class="adm-status" id="adm-status"></div>
 
@@ -1380,7 +1380,7 @@ select.adm-occ-ko { background: #ffebee !important; border-color: #ef5350 !impor
               <option value="Non disponible">Non disponible</option><option value="Non concerné">Non concerné (TVA 20%)</option></select>
             <div class="adm-help">À vérifier dans CS : l'API ne donne pas accès aux pièces jointes.</div></div>
           <div class="field"><label>Prix de reprise € HT</label>
-            <div class="adm-prix">🔒 Écrit automatiquement dans la fiche du Google Sheets (bloc Administration Reco), pas affiché ici.<span id="adm-prix-etat"></span></div></div>
+            <div class="adm-prix">Écrit automatiquement dans la fiche du Google Sheets (bloc Administration Reco), pas affiché ici.<span id="adm-prix-etat"></span></div></div>
         </div>
 
         <div class="adm-sub">Transfert interne</div>
@@ -4208,7 +4208,7 @@ async function loadAdmin(cs, fresh) {
       if (fc) {
         fc.className = 'adm-check' + (c.enFilialeEBSC === true ? ' ok' : c.enFilialeEBSC === false ? ' ko' : '');
         fc.textContent = c.enFilialeEBSC === true ? '✓ Le vélo est bien en filiale EBSC dans CS'
-          : c.enFilialeEBSC === false ? `⚠ Dans CS, le vélo est encore chez ${c.filiale} : le BLI de transfert vers EBSC n'est pas fait` : '';
+          : c.enFilialeEBSC === false ? `Attention : dans CS, le vélo est encore chez ${c.filiale} : le BLI de transfert vers EBSC n'est pas fait` : '';
       }
       n += admFill('emplacement', c.emplacement, 'CS');
     } else msgs.push(r.csError ? 'CycleSoftware injoignable (' + esc(r.csError) + ')' : esc(r.csMessage || 'Vélo introuvable dans CycleSoftware'));
