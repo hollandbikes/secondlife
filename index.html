@@ -1044,6 +1044,32 @@ body.online-mode #bikes-view { display: none !important; }
 .cs-prefill-box .btn { padding: 6px 12px; font-size: 12px; margin-left: 8px; vertical-align: middle; }
 .cs-prefill-box .submit-spinner { display: inline-block; vertical-align: middle; margin-right: 8px !important; }
 
+/* Administration Reco (v15) — rempli par Geoffroy à l'arrivée du vélo à EBSC */
+.adm-card summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 10px; }
+.adm-card summary::-webkit-details-marker { display: none; }
+.adm-card summary .card-title { margin: 0; }
+.adm-card summary::after { content: '▾'; margin-left: auto; color: var(--ink-soft); transition: transform .2s; }
+.adm-card[open] summary::after { transform: rotate(180deg); }
+.adm-count { font-size: 12px; color: var(--ink-soft); font-weight: 600; }
+.adm-body { margin-top: 16px; }
+.adm-sub { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); margin: 18px 0 8px; }
+.adm-sub:first-child { margin-top: 0; }
+.adm-src {
+  display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 6px;
+  background: #e3f2fd; color: #1565c0; font-family: var(--mono); font-size: 10px; font-weight: 700; vertical-align: middle;
+}
+.adm-src.nav { background: #ede7f6; color: #5e35b1; }
+.adm-src.regle { background: #fff8e1; color: #8a5a00; }
+.adm-help { font-size: 11px; color: var(--ink-soft); margin-top: 4px; line-height: 1.4; }
+.adm-help a { color: #1565c0; }
+.adm-check { font-size: 12px; font-weight: 700; margin-top: 4px; }
+.adm-check.ok { color: #2e7d32; } .adm-check.ko { color: #c62828; }
+select.adm-occ-ok { background: #e8f5e9 !important; border-color: #66bb6a !important; color: #1b5e20; font-weight: 700; }
+select.adm-occ-ko { background: #ffebee !important; border-color: #ef5350 !important; color: #b71c1c; font-weight: 700; }
+.adm-status { font-size: 12px; color: var(--ink-soft); margin-bottom: 12px; }
+.adm-status .btn { padding: 4px 10px; font-size: 12px; margin-left: 6px; }
+.adm-prix { padding: 10px 12px; border-radius: 10px; background: #f1f5f9; font-size: 13px; color: var(--ink-soft); }
+
 /* Fenêtre N° CS invalide */
 .sl-modal {
   position: fixed; inset: 0; z-index: 1500; display: none;
@@ -1320,6 +1346,54 @@ body.online-mode #bikes-view { display: none !important; }
         </div>
       </div>
     </div>
+
+    <details class="card adm-card" id="adm-card">
+      <summary><span class="card-title">🗂 Administration Reco</span><span class="adm-count" id="adm-count"></span></summary>
+      <div class="adm-body">
+        <div class="adm-status" id="adm-status"></div>
+
+        <div class="adm-sub">Arrivée du vélo</div>
+        <div class="field-grid cols-3">
+          <div class="field"><label for="adm_origine">Site d'origine</label><input type="text" id="adm_origine" data-adm="origine"></div>
+          <div class="field"><label for="adm_dateTransport">Date du transport</label><input type="date" id="adm_dateTransport" data-adm="dateTransport"></div>
+          <div class="field"><label for="adm_destination">Destination</label><input type="text" id="adm_destination" data-adm="destination"></div>
+        </div>
+        <input type="hidden" id="adm_lienNavette" data-adm="lienNavette">
+        <div class="adm-help" id="adm-navette-help"></div>
+
+        <div class="adm-sub">Vérifications CycleSoftware</div>
+        <div class="field-grid">
+          <div class="field"><label for="adm_statutCS">Statut occasion CS</label>
+            <select id="adm_statutCS" data-adm="statutCS">
+              <option value=""></option><option value="OCCASION">Occasion</option><option value="NEUF">Neuf</option>
+              <option value="LOCATION">Location</option><option value="DEMO">Démo</option>
+            </select></div>
+          <div class="field"><label for="adm_garantie">Garantie CS (type + durée)</label><input type="text" id="adm_garantie" data-adm="garantie" placeholder="ex. 12 mois"></div>
+          <div class="field"><label for="adm_codeBarre">Code-barres CS</label><input type="text" id="adm_codeBarre" data-adm="codeBarre">
+            <div class="adm-check" id="adm-cb-check"></div></div>
+          <div class="field"><label for="adm_tva">Statut TVA CS</label>
+            <select id="adm_tva" data-adm="tva"><option value=""></option><option value="TVA 20%">TVA 20%</option><option value="TVA MARGE">TVA MARGE</option></select>
+            <div class="adm-help" id="adm-tva-help"></div></div>
+          <div class="field" id="adm-field-factureOrigine"><label for="adm_factureOrigine">Facture d'origine (TVA marge)</label>
+            <select id="adm_factureOrigine" data-adm="factureOrigine"><option value=""></option>
+              <option value="Disponible en PJ">Disponible en PJ de la facture de reprise</option>
+              <option value="Non disponible">Non disponible</option><option value="Non concerné">Non concerné (TVA 20%)</option></select>
+            <div class="adm-help">À vérifier dans CS : l'API ne donne pas accès aux pièces jointes.</div></div>
+          <div class="field"><label>Prix de reprise € HT</label>
+            <div class="adm-prix">🔒 Écrit automatiquement dans la fiche du Google Sheets (bloc Administration Reco), pas affiché ici.<span id="adm-prix-etat"></span></div></div>
+        </div>
+
+        <div class="adm-sub">Transfert interne</div>
+        <div class="field-grid">
+          <div class="field"><label for="adm_bli">BLI transfert EBSC</label><input type="text" id="adm_bli" data-adm="bli" placeholder="N° du BLI, ou A faire">
+            <div class="adm-help">Vérifiable dans CS › plus › Livraisons internes (recherche par n° de vélo).</div></div>
+          <div class="field"><label for="adm_factureBli">Facturation BLI (n° facture)</label><input type="text" id="adm_factureBli" data-adm="factureBli" placeholder="ex. 20007533">
+            <div class="adm-help">Colonne « Facture » de la livraison interne dans CS.</div></div>
+          <div class="field"><label for="adm_filiale">Filiale CS</label><input type="text" id="adm_filiale" data-adm="filiale"></div>
+          <div class="field"><label for="adm_emplacement">Emplacement CS</label><input type="text" id="adm_emplacement" data-adm="emplacement"></div>
+        </div>
+      </div>
+    </details>
 
     <div class="card">
       <div class="card-title">Statut global du vélo <span class="req">*</span></div>
@@ -2220,6 +2294,7 @@ function goToStep(n, skipValidation) {
   // Récap
   if (n === 6) buildReview();
   if (n === 1) maybePrefillFromCS();
+  if (n === 0) maybeLoadAdmin();
   if (n === 2) refreshBatteryPdfCard();
   if (n === 5) renderCsReminder();
   
@@ -2354,6 +2429,7 @@ function buildPayload() {
     inspection:   inspectionForPayload(),
     statutGlobal: statutGlobal,
     notes:        document.getElementById('notes').value,
+    admin:        collectAdmin(),
   };
 }
 
@@ -2702,6 +2778,7 @@ function resetForm() {
   clearCsMarks();
   lastPrefillCs = '';
   setPrefillBox('');
+  resetAdmin();
   batteryPdfState = { cs: '', info: null };
   const bpStatus = document.getElementById('battery-pdf-status');
   if (bpStatus) { bpStatus.className = 'bp-status'; bpStatus.innerHTML = ''; }
@@ -3028,6 +3105,10 @@ async function loadFromSheets(cs) {
 
     // Notes
     setField('notes', d.notes || '');
+
+    // Administration Reco (v15)
+    restoreAdmin(d.admin || null);
+    admLoadedCs = '';
 
     // Show success toast
     showToast(`✓ Fiche CS-${cs} chargée depuis le Sheets`);
@@ -3981,6 +4062,170 @@ async function prefillFromCS(cs, fresh) {
     prefillBusy = false;
   }
 }
+
+// ── Administration Reco (v15) ───────────────────────────────
+//  Rempli par Geoffroy à l'arrivée du vélo à EBSC. Pré-rempli (champs vides
+//  seulement) depuis le Sheets navette et CycleSoftware (?action=admin).
+//  Tout reste modifiable. Le prix de reprise n'est jamais envoyé ici.
+const ADM_KEYS = ['origine', 'dateTransport', 'destination', 'lienNavette', 'statutCS', 'garantie', 'codeBarre',
+                  'tva', 'factureOrigine', 'bli', 'filiale', 'emplacement', 'factureBli'];
+let admSources = {};
+let admLoadedCs = '';
+let admBusy = false;
+let admPrixRenseigne = false;
+
+function admEl(k) { return document.getElementById('adm_' + k); }
+function admSetSrc(k, src) {
+  const el = admEl(k); if (!el) return;
+  const label = el.closest('.field') && el.closest('.field').querySelector('label');
+  if (label) { const old = label.querySelector('.adm-src'); if (old) old.remove(); }
+  if (src) admSources[k] = src; else delete admSources[k];
+  if (!src || !label) return;
+  const b = document.createElement('span');
+  b.className = 'adm-src' + (src === 'Navette' ? ' nav' : src === 'Règle' ? ' regle' : '');
+  b.textContent = src;
+  b.title = src === 'Règle' ? 'Valeur par défaut (vélo d\'occasion sans TVA renseignée dans CS)' : 'Rempli automatiquement depuis ' + (src === 'CS' ? 'CycleSoftware' : 'le Sheets navette');
+  label.appendChild(b);
+}
+function admFill(k, val, src) {
+  const el = admEl(k);
+  val = (val === undefined || val === null) ? '' : String(val).trim();
+  if (!el || !val || el.value) return false;
+  if (el.tagName === 'SELECT') {
+    const opt = Array.from(el.options).find(o => o.value.toLowerCase() === val.toLowerCase());
+    if (!opt) return false;
+    el.value = opt.value;
+  } else el.value = val;
+  admSetSrc(k, src);
+  return true;
+}
+function collectAdmin() {
+  const a = { sources: Object.assign({}, admSources) };
+  ADM_KEYS.forEach(k => { const el = admEl(k); a[k] = el ? el.value.trim() : ''; });
+  return a;
+}
+function restoreAdmin(a) {
+  admSources = {};
+  ADM_KEYS.forEach(k => { const el = admEl(k); if (el) el.value = ''; admSetSrc(k, ''); });
+  admPrixRenseigne = !!(a && a.prixRepriseRenseigne);
+  if (a) ADM_KEYS.forEach(k => {
+    const el = admEl(k); if (!el || !a[k]) return;
+    el.value = a[k];
+    if (a.sources && a.sources[k]) admSetSrc(k, a.sources[k]);
+  });
+  admRefresh();
+}
+function resetAdmin() {
+  restoreAdmin(null);
+  admLoadedCs = '';
+  const st = document.getElementById('adm-status'); if (st) st.innerHTML = '';
+  const nh = document.getElementById('adm-navette-help'); if (nh) nh.innerHTML = '';
+}
+
+// Couleurs, contrôle code-barres, aides, compteur
+function admRefresh() {
+  const cs = document.getElementById('objetCS').value.trim();
+  const sel = admEl('statutCS');
+  if (sel) {
+    sel.classList.remove('adm-occ-ok', 'adm-occ-ko');
+    if (sel.value) sel.classList.add(sel.value === 'OCCASION' ? 'adm-occ-ok' : 'adm-occ-ko');
+  }
+  const cb = admEl('codeBarre').value.trim(), chk = document.getElementById('adm-cb-check');
+  if (chk) {
+    const num = (cb.match(/(\d+)\s*$/) || [])[1] || '';
+    chk.className = 'adm-check' + (cb ? (num === cs || cb === cs ? ' ok' : ' ko') : '');
+    chk.textContent = !cb ? '' : (num === cs || cb === cs) ? '✓ Correspond au N° Objet CS' : `✗ Différent du N° Objet CS (${cs}) — à corriger dans CS`;
+  }
+  const tvaHelp = document.getElementById('adm-tva-help');
+  if (tvaHelp) tvaHelp.textContent = admSources.tva === 'Règle'
+    ? 'Pas de TVA renseignée dans CS : vélo d\'occasion → TVA MARGE par défaut. À vérifier.' : '';
+  const fo = document.getElementById('adm-field-factureOrigine');
+  if (fo) fo.style.opacity = admEl('tva').value === 'TVA 20%' ? '.55' : '1';
+  const pe = document.getElementById('adm-prix-etat');
+  if (pe) pe.textContent = admPrixRenseigne ? ' ✓ Renseigné dans la fiche.' : '';
+  const n = ADM_KEYS.filter(k => k !== 'lienNavette' && admEl(k) && admEl(k).value.trim()).length;
+  const cnt = document.getElementById('adm-count');
+  if (cnt) cnt.textContent = `${n} / ${ADM_KEYS.length - 1} renseignés`;
+}
+
+function maybeLoadAdmin() {
+  const cs = document.getElementById('objetCS').value.trim();
+  if (!csCheck(cs).ok || cs === admLoadedCs || admBusy) return;
+  loadAdmin(cs, false);
+}
+
+async function loadAdmin(cs, fresh) {
+  if (admBusy) return;
+  admBusy = true;
+  const st = document.getElementById('adm-status');
+  st.innerHTML = '<div class="submit-spinner" style="display:inline-block;width:14px;height:14px;border-width:2px;margin:0 6px -2px 0;"></div> Recherche dans le Sheets navette et CycleSoftware…';
+  try {
+    const resp = await fetch(`${APPS_SCRIPT_URL}?action=admin&cs=${encodeURIComponent(cs)}${fresh ? '&fresh=1' : ''}`);
+    const r = await resp.json();
+    if (document.getElementById('objetCS').value.trim() !== cs) return;
+    admLoadedCs = cs;
+    if (!r.success) throw new Error(r.error || 'réponse invalide');
+    let n = 0;
+    const msgs = [];
+
+    // Sheets navette : dernier transport vers EBSC
+    const nav = r.navette || {};
+    const t = nav.dernierVersEBSC;
+    const nh = document.getElementById('adm-navette-help');
+    if (t) {
+      n += admFill('origine', t.origine, 'Navette');
+      n += admFill('dateTransport', t.date, 'Navette');
+      n += admFill('destination', t.destination, 'Navette');
+      admFill('lienNavette', t.url, 'Navette');
+      n += admFill('bli', t.bliNumero || 'A faire', 'Navette');
+      nh.innerHTML = `Navette : ${esc(t.origine)} → ${esc(t.destination)}${t.date ? ' · chargement du ' + esc(t.date.split('-').reverse().join('/')) : ''}`
+        + `${t.bli && !t.bliNumero ? ' · colonne BL interne : « ' + esc(t.bli) + ' »' : ''}`
+        + ` · <a href="${esc(t.url)}" target="_blank">voir la ligne (${esc(t.onglet)}, ligne ${t.row})</a>`
+        + (nav.transports && nav.transports.length > 1 ? ` · ${nav.transports.length} transports pour ce vélo` : '');
+    } else {
+      const lien = admEl('lienNavette').value;
+      nh.innerHTML = lien ? `<a href="${esc(lien)}" target="_blank">Voir la ligne dans le Sheets navette</a>`
+        : (nav.found ? 'Vélo présent dans le Sheets navette, mais pas de transport vers EBSC.' : 'Vélo introuvable dans le Sheets navette (colonne « # Réf CS Objet »).');
+      if (!lien) n += admFill('bli', 'A faire', '');
+    }
+    if (r.navetteError) msgs.push('Sheets navette illisible (' + esc(r.navetteError) + ')');
+
+    // CycleSoftware
+    const c = r.csAdmin;
+    if (c) {
+      n += admFill('statutCS', c.statutCS, 'CS');
+      n += admFill('garantie', c.garantie, 'CS');
+      n += admFill('codeBarre', c.codeBarre, 'CS');
+      n += admFill('tva', c.tva, c.tvaSource === 'regle' ? 'Règle' : 'CS');
+      n += admFill('filiale', c.filiale, 'CS');
+      n += admFill('emplacement', c.emplacement, 'CS');
+    } else msgs.push(r.csError ? 'CycleSoftware injoignable (' + esc(r.csError) + ')' : esc(r.csMessage || 'Vélo introuvable dans CycleSoftware'));
+
+    admRefresh();
+    st.innerHTML = (n ? `✓ ${n} champ${n > 1 ? 's' : ''} pré-rempli${n > 1 ? 's' : ''} (repères <span class="adm-src nav" style="margin:0">Navette</span> <span class="adm-src" style="margin:0">CS</span>). Tout reste modifiable.`
+                      : 'Rien de nouveau à pré-remplir.')
+      + (msgs.length ? ' · ' + msgs.join(' · ') : '')
+      + ` <button class="btn btn-secondary" type="button" onclick="loadAdmin('${esc(cs)}', true)">↻ Relire</button>`;
+  } catch (err) {
+    admLoadedCs = cs;
+    st.innerHTML = `Pré-remplissage impossible (${esc(err.message)}) — remplis à la main.
+      <button class="btn btn-secondary" type="button" onclick="loadAdmin('${esc(cs)}', true)">↻ Réessayer</button>`;
+  } finally {
+    admBusy = false;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  ADM_KEYS.forEach(k => {
+    const el = admEl(k); if (!el) return;
+    const clear = () => { if (admSources[k]) admSetSrc(k, ''); admRefresh(); };
+    el.addEventListener('input', clear);
+    el.addEventListener('change', clear);
+  });
+  const card = document.getElementById('adm-card');
+  if (card) card.addEventListener('toggle', () => { if (card.open) maybeLoadAdmin(); });
+  admRefresh();
+});
 
 // ── Rapport batterie PDF ─────────────────────────────────────
 //  Envoyé à Apps Script (POST action=uploadPdf), rangé dans le dossier

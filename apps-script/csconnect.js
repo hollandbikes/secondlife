@@ -82,7 +82,7 @@ function getCSPrefill(cs, fresh) {
   cs = String(cs || '').trim();
   if (!cs) throw new Error('cs manquant');
   if (!csObjectId_(cs)) return { found: false, cs: cs, message: 'Le N° Objet CS doit faire 5 chiffres (pas l\'EAN)' };
-  var cacheKey = 'csprefill_' + cs;
+  var cacheKey = 'csprefill2_' + cs;   // v15 : réponse avec « admin »
   if (!fresh) { var hit = cacheGet(cacheKey); if (hit) return hit; }
 
   var raw = csLookup_(cs);
@@ -361,6 +361,7 @@ function csMapToFiche_(cs, raw) {
   });
 
   return { found: true, cs: cs, nbChamps: n, prefill: prefill, extras: extras,
+           admin: csAdminFromStock_(cs, raw),   // admin.js — sans aucun prix
            source: { stockObject: !!raw.stockObj, article: !!raw.article } };
 }
 

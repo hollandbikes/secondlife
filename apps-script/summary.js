@@ -57,6 +57,8 @@
 //   • Statut affiché = statut calculé ; la fiche garde le statut choisi (B101)
 //   • Points 49 et 51 : NON ne compte plus comme PAS OK (comme le point 25)
 //  v13 (25/11/2026) : status renvoie recoTerminee (étape « Reconditionnement » du parcours)
+//  v15 (27/11/2026) : bloc « Administration Reco » (admin.js) en A111:C125
+//     de chaque fiche, action=admin (Sheets navette + CycleSoftware)
 //  v14 (25/11/2026) : fiches de l'ancien Sheets lues en lecture seule (ancien.gs) :
 //     parcours, « Vélos par étape » et « Vélos en ligne » (archived: true)
 // ============================================================
@@ -222,7 +224,7 @@ function doGet(e) {
     const fresh  = params.fresh === '1' || params.fresh === 'true';
 
     if (action === 'ping') {
-      return jsonResponse({ status: 'ok', version: 14 });
+      return jsonResponse({ status: 'ok', version: 15 });
     }
 
     if (action === 'get') {
@@ -258,6 +260,13 @@ function doGet(e) {
       const cs = (params.cs || '').toString().trim();
       if (!cs) return jsonResponse({ success: false, error: 'cs manquant' });
       return jsonResponse(Object.assign({ success: true }, getCSPrefill(cs, fresh)));
+    }
+
+    // Administration Reco : Sheets navette + CycleSoftware (admin.js) — v15
+    if (action === 'admin') {
+      const cs = (params.cs || '').toString().trim();
+      if (!cs) return jsonResponse({ success: false, error: 'cs manquant' });
+      return jsonResponse(Object.assign({ success: true }, getAdminInfo(cs, fresh)));
     }
 
     // Rapport batterie PDF déjà envoyé pour ce vélo ?
@@ -367,9 +376,13 @@ function createInspectionSheet(data) {
 
   // Supprimer si déjà existant — en gardant le bloc des anciennes cases du parcours
   const existing = ss.getSheetByName(sheetName);
-  let parcoursSaved = null;
+  let parcoursSaved = null, adminSaved = null;
   if (existing) {
     parcoursSaved = existing.getRange(PARCOURS_ROW_TITLE, 1, PARCOURS_STEPS.length + 1, 3).getValues();
+    if (existing.getMaxRows() >= ADMIN_ROW_TITLE + ADMIN_ROWS - 1) {
+      adminSaved = existing.getRange(ADMIN_ROW_TITLE, 1, ADMIN_ROWS, 3).getValues();
+      if (String(adminSaved[0][0]).indexOf('ADMINISTRATION') !== 0) adminSaved = null;
+    }
     ss.deleteSheet(existing);
   }
 
@@ -385,6 +398,13 @@ function createInspectionSheet(data) {
     newSheet.getRange(PARCOURS_ROW_TITLE, 1, parcoursSaved.length, 3).setValues(parcoursSaved);
   } else {
     writeParcoursBlock(newSheet);
+  }
+
+  // Bloc Administration Reco (v15) : valeurs de la webapp, sinon l'ancien bloc
+  try {
+    writeAdminBlock(newSheet, data.admin || null, adminSaved, objCS);
+  } catch (admErr) {
+    Logger.log('writeAdminBlock error: ' + admErr.message);
   }
 
   // Repositionner juste après le template
@@ -1278,7 +1298,8 @@ function readSheetData(cs) {
     },
     inspection:   inspection,
     statutGlobal: normalizeStatut(g('B101')),
-    notes:        g('B100')
+    notes:        g('B100'),
+    admin:        readAdminBlock_(sheet)   // v15 — sans le prix de reprise
   };
 }
 
