@@ -417,8 +417,6 @@ function explorerAdminCS() {
   essai('Types de garantie', '/api/v1/common/enum/warranty_types.json');
   essai('Codes TVA', '/api/v4/articledata/codelist/vat.json');
 
-  // Factures : transactions du 26/11/2026 (jour du BLI 676607 → facture 20007533 pour le 82036)
-  // Le journal montre si les factures internes (BLI) apparaissent, et sous quelle forme.
-  essai('Transactions 26/11/2026', '/api/v3/salesdata/transactions.json',
-        { start_date: '2026-11-26', end_date: '2026-11-26' });
+  // (27/11) Test des transactions retiré : les filtres de date ne sont pas pris en compte
+  // et la réponse contient des données clients (noms, adresses, téléphones).
 }

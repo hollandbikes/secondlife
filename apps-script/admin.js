@@ -121,11 +121,12 @@ function findNavette(cs, fresh) {
 function csAdminFromStock_(cs, raw) {
   var so = raw.stockObj || {}, st = so.status || {}, o = so.object || {};
 
-  // Statut : location > démo > occasion > neuf
+  // Statut : location > occasion > démo > neuf
   var statutCS = '';
+  // (61402 est à la fois is_demo et is_used : l'occasion l'emporte)
   if (st.is_rental === true) statutCS = 'LOCATION';
-  else if (st.is_demo === true) statutCS = 'DEMO';
   else if (st.is_used === true) statutCS = 'OCCASION';
+  else if (st.is_demo === true) statutCS = 'DEMO';
   else if (st.is_used === false) statutCS = 'NEUF';
 
   // Code-barres de l'objet : doit être le N° Objet CS
@@ -137,16 +138,21 @@ function csAdminFromStock_(cs, raw) {
   var storeId = so.store_id !== undefined ? so.store_id : (o.store_id !== undefined ? o.store_id : '');
   var filiale = storeId === '' ? '' : (CS_STORE_NAMES[storeId] || ('Filiale CS n° ' + storeId));
 
-  // Champs non documentés : recherche par nom de clé dans toute la réponse
+  // TVA et emplacement : absents de l'objet stock (vérifié le 27/11 sur 61402 et 82036).
+  // Recherche par nom de clé gardée au cas où CS les ajoute.
   var flat = csFlatten_(so);
   var gar = csFindKey_(flat, /warrant|garant|guarantee/i);
   var garDuree = csFindKey_(flat, /(warrant|garant).*(month|mois|duration|duree|period)|(month|duration|duree).*(warrant|garant)/i);
   var tvaRaw = csFindKey_(flat, /(^|\.)(vat|tva|btw)|margin|marge/i);
   var empl = csFindKey_(flat, /location|emplacement|locatie|shelf|bin_|stock_place/i);
 
+  // Champs réels (27/11) : object.warranty_type (1 = Garantie…) + object.warranty_duration_months
+  var GAR_TYPES = { 1: 'Garantie', 2: 'Garantie Bovag', 3: 'Garantie du revendeur', 4: 'Garantie du fabricant', 5: 'Garantie de la marque', 6: 'Label Bike Totaal' };
   var garantie = '';
-  if (garDuree && /^\d+$/.test(garDuree.v)) garantie = garDuree.v + ' mois';
-  else if (gar && gar.v !== 'false' && gar.v !== 'null') garantie = gar.v + (garDuree ? ' · ' + garDuree.v : '');
+  var gMois = o.warranty_duration_months, gType = o.warranty_type;
+  if (gMois) garantie = (gType && gType !== 1 && GAR_TYPES[gType] ? GAR_TYPES[gType] + ' · ' : '') + gMois + ' mois';
+  else if (gType && GAR_TYPES[gType]) garantie = GAR_TYPES[gType] + ' (durée non renseignée)';
+  else if (garDuree && /^\d+$/.test(garDuree.v)) garantie = garDuree.v + ' mois';
 
   // TVA : 20 % si CS l'indique, sinon occasion → TVA MARGE par défaut
   var tva = '', tvaSource = '';

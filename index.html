@@ -1390,7 +1390,8 @@ select.adm-occ-ko { background: #ffebee !important; border-color: #ef5350 !impor
           <div class="field"><label for="adm_factureBli">Facturation BLI (n° facture)</label><input type="text" id="adm_factureBli" data-adm="factureBli" placeholder="ex. 20007533">
             <div class="adm-help">Colonne « Facture » de la livraison interne dans CS.</div></div>
           <div class="field"><label for="adm_filiale">Filiale CS</label><input type="text" id="adm_filiale" data-adm="filiale"></div>
-          <div class="field"><label for="adm_emplacement">Emplacement CS</label><input type="text" id="adm_emplacement" data-adm="emplacement"></div>
+          <div class="field"><label for="adm_emplacement">Emplacement CS</label><input type="text" id="adm_emplacement" data-adm="emplacement">
+            <div class="adm-help">L'API CS ne renvoie pas l'emplacement : à recopier depuis CS.</div></div>
         </div>
       </div>
     </details>
@@ -4138,7 +4139,7 @@ function admRefresh() {
   }
   const tvaHelp = document.getElementById('adm-tva-help');
   if (tvaHelp) tvaHelp.textContent = admSources.tva === 'Règle'
-    ? 'Pas de TVA renseignée dans CS : vélo d\'occasion → TVA MARGE par défaut. À vérifier.' : '';
+    ? 'L\'API CS ne renvoie pas la TVA du vélo : occasion → TVA MARGE par défaut. À vérifier dans CS.' : '';
   const fo = document.getElementById('adm-field-factureOrigine');
   if (fo) fo.style.opacity = admEl('tva').value === 'TVA 20%' ? '.55' : '1';
   const pe = document.getElementById('adm-prix-etat');
