@@ -1379,8 +1379,9 @@ select.adm-occ-ko { background: #ffebee !important; border-color: #ef5350 !impor
               <option value="Disponible en PJ">Disponible en PJ de la facture de reprise</option>
               <option value="Non disponible">Non disponible</option><option value="Non concerné">Non concerné (TVA 20%)</option></select>
             <div class="adm-help">À vérifier dans CS : l'API ne donne pas accès aux pièces jointes.</div></div>
-          <div class="field"><label>Prix de reprise € HT</label>
-            <div class="adm-prix">Écrit automatiquement dans la fiche du Google Sheets (bloc Administration Reco), pas affiché ici.<span id="adm-prix-etat"></span></div></div>
+          <div class="field"><label for="adm_prixReprise">Prix de reprise € HT</label>
+            <input type="text" id="adm_prixReprise" readonly tabindex="-1" style="background:#f1f5f9;">
+            <div class="adm-help">Prix d'achat du vélo dans CS, lu automatiquement. À corriger dans CS si besoin.</div></div>
         </div>
 
         <div class="adm-sub">Transfert interne</div>
@@ -4077,9 +4078,17 @@ const ADM_KEYS = ['origine', 'dateTransport', 'destination', 'lienNavette', 'sta
 let admSources = {};
 let admLoadedCs = '';
 let admBusy = false;
-let admPrixRenseigne = false;
 
 function admEl(k) { return document.getElementById('adm_' + k); }
+function admEur(v) {
+  if (v === '' || v === null || v === undefined || isNaN(Number(v))) return '';
+  return Number(v).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+function admSetPrix(v, src) {
+  const el = admEl('prixReprise'); if (!el) return;
+  el.value = admEur(v);
+  admSetSrc('prixReprise', el.value ? src : '');
+}
 function admSetSrc(k, src) {
   const el = admEl(k); if (!el) return;
   const label = el.closest('.field') && el.closest('.field').querySelector('label');
@@ -4116,7 +4125,7 @@ function collectAdmin() {
 function restoreAdmin(a) {
   admSources = {};
   ADM_KEYS.forEach(k => { const el = admEl(k); if (el) el.value = ''; admSetSrc(k, ''); });
-  admPrixRenseigne = !!(a && a.prixRepriseRenseigne);
+  admSetPrix(a ? a.prixReprise : '', a && a.sources && a.sources.prixReprise ? 'CS' : '');
   if (a) ADM_KEYS.forEach(k => {
     const el = admEl(k); if (!el || !a[k]) return;
     el.value = a[k];
@@ -4151,8 +4160,6 @@ function admRefresh() {
     ? 'L\'API CS ne renvoie pas la TVA du vélo : occasion → TVA MARGE par défaut. À vérifier dans CS.' : '';
   const fo = document.getElementById('adm-field-factureOrigine');
   if (fo) fo.style.opacity = admEl('tva').value === 'TVA 20%' ? '.55' : '1';
-  const pe = document.getElementById('adm-prix-etat');
-  if (pe) pe.textContent = admPrixRenseigne ? ' ✓ Renseigné dans la fiche.' : '';
   const n = ADM_KEYS.filter(k => k !== 'lienNavette' && admEl(k) && admEl(k).value.trim()).length;
   const cnt = document.getElementById('adm-count');
   if (cnt) cnt.textContent = `${n} / ${ADM_KEYS.length - 1} renseignés`;
@@ -4207,6 +4214,7 @@ async function loadAdmin(cs, fresh) {
       n += admFill('garantie', c.garantie, 'CS');
       n += admFill('codeBarre', c.codeBarre, 'CS');
       n += admFill('tva', c.tva, c.tvaSource === 'regle' ? 'Règle' : 'CS');
+      if (c.prixReprise !== '' && c.prixReprise !== undefined) { admSetPrix(c.prixReprise, 'CS'); n++; }
       n += admFill('filiale', c.filiale, 'CS');
       const fc = document.getElementById('adm-filiale-check');
       if (fc) {

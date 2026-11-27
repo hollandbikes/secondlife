@@ -1299,7 +1299,7 @@ function readSheetData(cs) {
     inspection:   inspection,
     statutGlobal: normalizeStatut(g('B101')),
     notes:        g('B100'),
-    admin:        readAdminBlock_(sheet)   // v15 — sans le prix de reprise
+    admin:        readAdminBlock_(sheet)   // v15
   };
 }
 

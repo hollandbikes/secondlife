@@ -10,9 +10,10 @@
 //      code-barres, filiale, et garantie / TVA / emplacement si CS les renvoie
 //  Tout reste modifiable dans la webapp.
 //
-//  Prix de reprise : JAMAIS renvoyé à la webapp (adresse publique, accès
-//  sans connexion). Il est écrit uniquement dans la fiche Sheets, à chaque
-//  enregistrement (writeAdminBlock).
+//  Prix de reprise (prix d'achat CS) : affiché dans la webapp à la demande de
+//  Bruno (27/11/2026), en connaissance de cause : l'adresse du script est
+//  publique, le prix est donc lisible par qui la trouve. Il est aussi écrit
+//  dans la fiche Sheets à chaque enregistrement (writeAdminBlock).
 //
 //  Appel webapp : ?action=admin&cs=82036  (&fresh=1 pour ignorer le cache)
 // ============================================================
@@ -136,7 +137,7 @@ function findNavette(cs, fresh) {
 
 // ============================================================
 //  CYCLESOFTWARE — infos administratives de l'objet stock
-//  Appelé par csMapToFiche_ (csconnect.js). Jamais de prix ici.
+//  Appelé par csMapToFiche_ (csconnect.js). Seul prix renvoyé : le prix de reprise.
 // ============================================================
 function csAdminFromStock_(cs, raw) {
   var so = raw.stockObj || {}, st = so.status || {}, o = so.object || {};
@@ -196,7 +197,9 @@ function csAdminFromStock_(cs, raw) {
     emplacement: empl ? empl.v : '',
     // Pour caler les noms de champs (jamais de valeurs de prix)
     champsTrouves: [gar, garDuree, tvaRaw, empl].filter(Boolean).map(function(x) { return x.k; }),
-    venduFacture: so.sales_transaction_number || ''
+    venduFacture: so.sales_transaction_number || '',
+    prixReprise: (o.purchase_price_cents === undefined || o.purchase_price_cents === null || o.purchase_price_cents === '')
+      ? '' : Math.round(Number(o.purchase_price_cents)) / 100
   };
 }
 
@@ -275,7 +278,6 @@ function readAdminBlock_(sheet) {
   var tz = Session.getScriptTimeZone();
   var out = { sources: {} };
   ADMIN_FIELDS.forEach(function(f, i) {
-    if (f.key === 'prixReprise') return;   // jamais renvoyé à la webapp
     var v = vals[i + 1][1];
     out[f.key] = v instanceof Date ? Utilities.formatDate(v, tz, 'yyyy-MM-dd') : String(v === null ? '' : v).trim();
     if (vals[i + 1][2]) out.sources[f.key] = String(vals[i + 1][2]);
