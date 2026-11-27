@@ -4095,7 +4095,11 @@ function admSetSrc(k, src) {
 function admFill(k, val, src) {
   const el = admEl(k);
   val = (val === undefined || val === null) ? '' : String(val).trim();
-  if (!el || !val || el.value) return false;
+  // Remplit un champ vide, ou met à jour une valeur automatique jamais modifiée
+  // (repère encore présent), ex. « Filiale CS n° 2 » → « EBSC ».
+  if (!el || !val) return false;
+  if (el.value && !admSources[k]) return false;
+  if (el.value === val) return false;
   if (el.tagName === 'SELECT') {
     const opt = Array.from(el.options).find(o => o.value.toLowerCase() === val.toLowerCase());
     if (!opt) return false;
