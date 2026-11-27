@@ -292,7 +292,7 @@ function readAdminBlock_(sheet) {
 //  Mettre dans « numeros » un vélo dont l'emplacement est rempli dans CS.
 // ============================================================
 function testEmplacementCS() {
-  var numeros = ['82036'];
+  var numeros = ['83036'];
   var garder = /locat|emplac|stock|store|warehouse|shelf|bin|position|quantity|object_id|^data\.\d+\.barcode$/i;
   var jeter  = /price|cost|cents|purchase|amount|customer|email|phone|street|city|postcode|description/i;
   function aplatir(x, pfx, out) {
